@@ -4,9 +4,6 @@
 - 更新版本至 {VERSION}
 
 ### 📦 安装说明
-1. 下载 `napcat-plugin-bilibili.zip`
+1. 下载 `napcat-plugin-puppeteer.zip`
 2. 解压到 NapCat 的 `plugins` 目录
 3. 重启 NapCat
-
----
-**Full Changelog**: https://github.com/AQiaoYo/napcat-plugin-bilibili/compare/{PREV_VERSION}...{VERSION}

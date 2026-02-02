@@ -69,11 +69,11 @@ jobs:
           
           # 进入临时目录并压缩
           cd release
-          zip -r ../napcat-plugin-bilibili.zip index.mjs package.json webui
+          zip -r ../napcat-plugin-puppeteer.zip index.mjs package.json webui
           
       - name: Verify zip contents
         run: |
-          unzip -l napcat-plugin-bilibili.zip
+          unzip -l napcat-plugin-puppeteer.zip
 
       - name: Create Release Note via AI
         env:
@@ -81,7 +81,7 @@ jobs:
           OPENROUTER_API_URL: "https://91vip.futureppo.top/v1/chat/completions"
           OPENROUTER_MODEL: "copilot/gemini-3-flash-preview"
           GITHUB_OWNER: "AQiaoYo"
-          GITHUB_REPO: "napcat-plugin-bilibili"
+          GITHUB_REPO: "napcat-plugin-puppeteer"
         run: |
           set -euo pipefail
           CURRENT_TAG="${{ steps.version.outputs.version }}"
@@ -160,7 +160,7 @@ jobs:
           body_path: CHANGELOG.md
           draft: false
           files: |
-            napcat-plugin-bilibili.zip
+            napcat-plugin-puppeteer.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -172,7 +172,7 @@ jobs:
           
           VERSION="${{ steps.version.outputs.clean_version }}"
           TAG_VERSION="${{ steps.version.outputs.version }}"
-          PLUGIN_ID="napcat-plugin-bilibili"
+          PLUGIN_ID="napcat-plugin-puppeteer"
           INDEX_REPO="NapNeko/napcat-plugin-index"
           FORK_OWNER="${{ github.repository_owner }}"
           BRANCH_NAME="update-${PLUGIN_ID}-${TAG_VERSION}"
@@ -201,15 +201,41 @@ jobs:
           DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_VERSION}/${PLUGIN_ID}.zip"
           UPDATE_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           
-          # 使用 jq 更新版本号和下载链接
-          jq --arg id "${PLUGIN_ID}" \
-             --arg version "${VERSION}" \
-             --arg downloadUrl "${DOWNLOAD_URL}" \
-             --arg updateTime "${UPDATE_TIME}" \
-             '
-             .updateTime = $updateTime |
-             .plugins = [.plugins[] | if .id == $id then .version = $version | .downloadUrl = $downloadUrl else . end]
-             ' plugins.v4.json > plugins.v4.json.tmp && mv plugins.v4.json.tmp plugins.v4.json
+          # 检查插件是否已存在，如果不存在则新建条目
+          PLUGIN_EXISTS=$(jq --arg id "${PLUGIN_ID}" '.plugins | map(select(.id == $id)) | length' plugins.v4.json)
+          
+          if [ "$PLUGIN_EXISTS" -eq 0 ]; then
+            echo "📝 Plugin not found in index, creating new entry..."
+            # 新建插件条目
+            jq --arg id "${PLUGIN_ID}" \
+               --arg version "${VERSION}" \
+               --arg downloadUrl "${DOWNLOAD_URL}" \
+               --arg updateTime "${UPDATE_TIME}" \
+               '
+               .updateTime = $updateTime |
+               .plugins += [{
+                 "id": $id,
+                 "name": "Puppeteer 渲染服务",
+                 "description": "NapCat Puppeteer 渲染服务插件 - 提供 HTML/模板截图渲染 API，供其他插件调用",
+                 "author": "AQiaoYo",
+                 "version": $version,
+                 "downloadUrl": $downloadUrl,
+                 "minVersion": "4.14.13",
+                 "homepage": "https://github.com/AQiaoYo/napcat-plugin-puppeteer"
+               }]
+               ' plugins.v4.json > plugins.v4.json.tmp && mv plugins.v4.json.tmp plugins.v4.json
+          else
+            echo "📝 Plugin found in index, updating..."
+            # 使用 jq 更新版本号和下载链接
+            jq --arg id "${PLUGIN_ID}" \
+               --arg version "${VERSION}" \
+               --arg downloadUrl "${DOWNLOAD_URL}" \
+               --arg updateTime "${UPDATE_TIME}" \
+               '
+               .updateTime = $updateTime |
+               .plugins = [.plugins[] | if .id == $id then .version = $version | .downloadUrl = $downloadUrl else . end]
+               ' plugins.v4.json > plugins.v4.json.tmp && mv plugins.v4.json.tmp plugins.v4.json
+          fi
           
           # 检查是否有变化
           if git diff --quiet plugins.v4.json; then
