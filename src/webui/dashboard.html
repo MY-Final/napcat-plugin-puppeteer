@@ -1210,16 +1210,22 @@
 
                                 <div class="space-y-4">
                                     <div>
-                                        <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">方式一：HTTP
-                                            Header（推荐）</label>
+                                        <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">HTTP
+                                            Header 方式</label>
                                         <pre class="text-xs">Authorization: Bearer &lt;your-auth-token&gt;</pre>
+                                        <p class="text-xs text-gray-400 mt-2">⚠️ 出于安全考虑，不支持 Query 参数传递密钥</p>
                                     </div>
                                     <div>
                                         <label
-                                            class="text-xs font-semibold text-gray-500 uppercase mb-2 block">方式二：Query
-                                            参数</label>
-                                        <pre
-                                            class="text-xs">/puppeteer/screenshot?token=&lt;your-auth-token&gt;&amp;url=...</pre>
+                                            class="text-xs font-semibold text-gray-500 uppercase mb-2 block">完整示例</label>
+                                        <pre class="text-xs">fetch('/api/Plugin/ext/插件名/puppeteer/render', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer &lt;your-auth-token&gt;'
+  },
+  body: JSON.stringify({ html: '&lt;h1&gt;Hello&lt;/h1&gt;' })
+})</pre>
                                     </div>
                                 </div>
                             </div>
