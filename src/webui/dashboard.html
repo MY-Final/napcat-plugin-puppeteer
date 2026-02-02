@@ -13,14 +13,24 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#667eea',
-                        secondary: '#764ba2',
+                        primary: '#FB7299',
+                        brand: {
+                            pink: '#FB7299',
+                            blue: '#00A1D6',
+                            dark: '#18191C',
+                            gray: '#F4F4F4',
+                        }
                     }
                 }
             }
         }
     </script>
     <style>
+        :root {
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -29,78 +39,82 @@
         body {
             height: 100%;
             margin: 0;
-            background: #f0f2f5;
-            color: #1f2937;
-            font-size: 16px;
-            transition: background 0.3s, color 0.3s;
+            overflow: hidden;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
-        html.dark,
-        html.dark body {
-            background: #1a1a2e;
-            color: #e5e7eb;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s var(--ease-smooth);
         }
 
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .dark .glass-card {
+            background: rgba(42, 43, 46, 0.8);
+            border-color: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
 
-        .card {
-            background: white;
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s;
+            color: #4b5563;
+            transition: all 0.2s var(--ease-smooth);
+            cursor: pointer;
+            margin-bottom: 4px;
         }
 
-        html.dark .card {
-            background: #2a2a40;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        .dark .sidebar-item {
+            color: #9ca3af;
         }
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
+        .sidebar-item:hover {
+            background: rgba(251, 114, 153, 0.1);
+            color: #FB7299;
         }
 
-        .status-dot.connected {
-            background: #10b981;
-        }
-
-        .status-dot.disconnected {
-            background: #ef4444;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+        .sidebar-item.active {
+            background: #FB7299;
+            color: white;
+            box-shadow: 0 4px 12px rgba(251, 114, 153, 0.3);
         }
 
         .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             padding: 8px 16px;
             border-radius: 8px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s var(--ease-spring);
             border: none;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #FB7299;
             color: white;
         }
 
         .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background: #e05a80;
+            box-shadow: 0 4px 12px rgba(251, 114, 153, 0.4);
         }
 
         .btn-danger {
@@ -110,275 +124,465 @@
 
         .btn-danger:hover {
             background: #dc2626;
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
         }
 
         .input-field {
             width: 100%;
             padding: 10px 14px;
-            border: 1px solid #d1d5db;
             border-radius: 8px;
-            font-size: 14px;
+            border: 1px solid #e5e7eb;
+            background: white;
             transition: all 0.2s;
         }
 
-        html.dark .input-field {
-            background: #1a1a2e;
-            border-color: #4b5563;
-            color: #e5e7eb;
+        .dark .input-field {
+            background: #1f2937;
+            border-color: #374151;
+            color: white;
         }
 
         .input-field:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            border-color: #FB7299;
+            box-shadow: 0 0 0 3px rgba(251, 114, 153, 0.2);
         }
 
-        .code-block {
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-content {
+            display: none;
+            animation: fadeIn 0.4s var(--ease-spring);
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.connected {
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+            background: #10b981;
+        }
+
+        .status-dot.disconnected {
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+            background: #ef4444;
+        }
+
+        pre {
             background: #1e1e1e;
             color: #d4d4d4;
-            padding: 16px;
-            border-radius: 8px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 13px;
+            padding: 1rem;
+            border-radius: 0.5rem;
             overflow-x: auto;
-        }
-
-        .stat-card {
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .tab-btn {
-            padding: 10px 20px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-weight: 500;
-            color: #6b7280;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
+            font-size: 0.875rem;
         }
     </style>
 </head>
 
-<body>
-    <div class="min-h-screen">
-        <!-- 顶部导航 -->
-        <header class="gradient-bg text-white p-4 shadow-lg">
-            <div class="max-w-6xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">🎨</span>
+<body class="bg-gray-50 dark:bg-[#18191C] text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside
+            class="w-64 flex-shrink-0 bg-white dark:bg-[#202124] border-r border-gray-200 dark:border-gray-800 flex flex-col z-10 transition-colors duration-300">
+            <div class="p-6 flex items-center gap-3">
+                <div class="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-primary">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Puppeteer</h1>
+                    <p class="text-xs text-gray-400">渲染服务</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-4 py-2 overflow-y-auto">
+                <div class="sidebar-item active" onclick="switchPage('status', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>运行状态</span>
+                </div>
+                <div class="sidebar-item" onclick="switchPage('test', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    <span>渲染测试</span>
+                </div>
+                <div class="sidebar-item" onclick="switchPage('api', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span>API 文档</span>
+                </div>
+            </nav>
+
+            <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+                <div
+                    class="flex items-center justify-center w-full p-2 rounded-lg text-gray-500 bg-gray-50 dark:bg-gray-800/50 cursor-default">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" class="opacity-70">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <span class="ml-2 text-xs">跟随系统主题</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div
+            class="flex-1 flex flex-col overflow-hidden bg-gray-50 dark:bg-[#18191C] relative transition-colors duration-300">
+            <!-- Scrollable Content -->
+            <main id="mainContent" class="flex-1 overflow-y-auto h-full relative">
+                <header id="mainHeader"
+                    class="sticky top-0 z-20 flex justify-between items-center px-4 py-4 md:px-8 md:py-6 bg-gray-50 dark:bg-[#18191C] z-10 transition-all duration-300 border-b border-transparent">
                     <div>
-                        <h1 class="text-xl font-bold">Puppeteer 渲染服务</h1>
-                        <p class="text-sm opacity-80">HTML/模板截图渲染 API</p>
+                        <h2 class="text-2xl font-bold" id="pageTitle">运行状态</h2>
+                        <p class="text-gray-500 text-sm mt-1" id="pageDesc">查看插件和服务概览</p>
                     </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div id="browserStatus" class="flex items-center gap-2">
-                        <div class="status-dot disconnected"></div>
-                        <span class="text-sm">检查中...</span>
+                    <div
+                        class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#202124] rounded-full shadow-sm border border-gray-100 dark:border-gray-800">
+                        <div id="statusDot" class="status-dot disconnected"></div>
+                        <span class="text-sm font-medium" id="statusText">连接检查中...</span>
                     </div>
-                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-white/10">
-                        <span id="darkModeIcon">🌙</span>
-                    </button>
-                </div>
-            </div>
-        </header>
+                </header>
 
-        <!-- 主内容 -->
-        <main class="max-w-6xl mx-auto p-4">
-            <!-- 统计卡片 -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="card stat-card">
-                    <div class="stat-value" id="statTotalRenders">0</div>
-                    <div class="text-gray-500 text-sm mt-1">总渲染次数</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value" id="statFailedRenders">0</div>
-                    <div class="text-gray-500 text-sm mt-1">失败次数</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value" id="statPageCount">0</div>
-                    <div class="text-gray-500 text-sm mt-1">当前页面数</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value" id="statUptime">-</div>
-                    <div class="text-gray-500 text-sm mt-1">运行时间</div>
-                </div>
-            </div>
+                <div class="px-4 md:px-8 pb-8">
+                    <!-- Page: Status -->
+                    <div id="page-status" class="page-content active">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div class="glass-card p-6">
+                                <div class="text-gray-500 text-sm mb-2">总渲染次数</div>
+                                <div class="text-3xl font-bold text-primary" id="statTotalRenders">0</div>
+                            </div>
+                            <div class="glass-card p-6">
+                                <div class="text-gray-500 text-sm mb-2">失败次数</div>
+                                <div class="text-3xl font-bold text-red-500" id="statFailedRenders">0</div>
+                            </div>
+                            <div class="glass-card p-6">
+                                <div class="text-gray-500 text-sm mb-2">当前页面数</div>
+                                <div class="text-3xl font-bold text-blue-500" id="statPageCount">0</div>
+                            </div>
+                            <div class="glass-card p-6">
+                                <div class="text-gray-500 text-sm mb-2">运行时长</div>
+                                <div class="text-xl font-bold text-green-500 truncate" id="statUptime">-</div>
+                            </div>
+                        </div>
 
-            <!-- 选项卡 -->
-            <div class="card mb-6">
-                <div class="border-b border-gray-200 dark:border-gray-700">
-                    <div class="flex">
-                        <button class="tab-btn active" data-tab="control">浏览器控制</button>
-                        <button class="tab-btn" data-tab="test">渲染测试</button>
-                        <button class="tab-btn" data-tab="api">API 文档</button>
-                    </div>
-                </div>
+                        <div class="glass-card p-6 mb-8">
+                            <h3 class="font-bold text-lg mb-4">浏览器控制</h3>
+                            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-primary">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">实例管理</div>
+                                        <div class="text-sm text-gray-500">控制 Puppeteer 浏览器生命周期</div>
+                                    </div>
+                                </div>
 
-                <!-- 浏览器控制 -->
-                <div id="tab-control" class="tab-content active p-6">
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="font-bold mb-4">浏览器状态</h3>
-                            <div id="browserInfo" class="space-y-3 text-sm">
-                                <div class="flex justify-between py-2 border-b dark:border-gray-700">
+                                <div class="flex flex-wrap gap-3">
+                                    <button onclick="startBrowser()" class="btn btn-primary">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                        </svg>
+                                        启动
+                                    </button>
+                                    <button onclick="restartBrowser()" class="btn"
+                                        style="background:#f59e0b;color:white;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="23 4 23 10 17 10"></polyline>
+                                            <polyline points="1 20 1 14 7 14"></polyline>
+                                            <path
+                                                d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                            </path>
+                                        </svg>
+                                        重启
+                                    </button>
+                                    <button onclick="stopBrowser()" class="btn btn-danger">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        </svg>
+                                        停止
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="operationResult" class="mt-4 text-sm h-6 rounded p-1 text-center empty:hidden">
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-6">
+                            <h3 class="font-bold text-lg mb-4">系统信息</h3>
+                            <div class="grid md:grid-cols-2 gap-4 text-sm">
+                                <div class="flex justify-between p-3 bg-gray-50 dark:bg-[#202124] rounded-lg">
                                     <span class="text-gray-500">连接状态</span>
-                                    <span id="infoConnected">-</span>
+                                    <span class="font-medium" id="infoConnected">-</span>
                                 </div>
-                                <div class="flex justify-between py-2 border-b dark:border-gray-700">
+                                <div class="flex justify-between p-3 bg-gray-50 dark:bg-[#202124] rounded-lg">
                                     <span class="text-gray-500">浏览器版本</span>
-                                    <span id="infoVersion">-</span>
+                                    <span class="font-medium" id="infoVersion">-</span>
                                 </div>
-                                <div class="flex justify-between py-2 border-b dark:border-gray-700">
-                                    <span class="text-gray-500">可执行文件</span>
-                                    <span id="infoPath" class="truncate max-w-[200px]" title="">-</span>
+                                <div
+                                    class="flex justify-between p-3 bg-gray-50 dark:bg-[#202124] rounded-lg md:col-span-2">
+                                    <span class="text-gray-500 flex-shrink-0 mr-4">可执行路径</span>
+                                    <span class="font-medium truncate font-mono text-xs" id="infoPath">-</span>
                                 </div>
                             </div>
-                        </div>
-                        <div>
-                            <h3 class="font-bold mb-4">操作</h3>
-                            <div class="flex flex-wrap gap-3">
-                                <button onclick="startBrowser()" class="btn btn-primary">启动浏览器</button>
-                                <button onclick="restartBrowser()" class="btn btn-secondary">重启浏览器</button>
-                                <button onclick="stopBrowser()" class="btn btn-danger">停止浏览器</button>
-                            </div>
-                            <p id="operationResult" class="mt-4 text-sm text-gray-500"></p>
                         </div>
                     </div>
-                </div>
 
-                <!-- 渲染测试 -->
-                <div id="tab-test" class="tab-content p-6">
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="font-bold mb-4">输入</h3>
-                            <div class="space-y-4">
+                    <!-- Page: Test -->
+                    <div id="page-test" class="page-content">
+                        <div class="grid md:grid-cols-2 gap-6 h-full">
+                            <div class="glass-card p-6 flex flex-col gap-4">
+                                <h3 class="font-bold flex items-center gap-2">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                                        <line x1="9" y1="20" x2="15" y2="20"></line>
+                                        <line x1="12" y1="4" x2="12" y2="20"></line>
+                                    </svg>
+                                    测试参数
+                                </h3>
+
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">类型</label>
+                                    <label class="text-xs font-semibold text-gray-500 uppercase mb-1 block">渲染类型</label>
                                     <select id="testType" class="input-field">
                                         <option value="html">HTML 字符串</option>
-                                        <option value="url">URL</option>
+                                        <option value="url">URL 地址</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">内容</label>
-                                    <textarea id="testContent" class="input-field h-32" placeholder="输入 HTML 或 URL...">&lt;html&gt;
-&lt;body style="padding:20px;font-family:sans-serif;"&gt;
-  &lt;h1 style="color:#667eea;"&gt;Hello Puppeteer!&lt;/h1&gt;
+
+                                <div class="flex-1 flex flex-col">
+                                    <label class="text-xs font-semibold text-gray-500 uppercase mb-1 block">内容</label>
+                                    <textarea id="testContent"
+                                        class="input-field flex-1 font-mono text-xs p-3 min-h-[150px]"
+                                        placeholder="输入 HTML 或 URL...">&lt;html&gt;
+&lt;body style="padding:40px;font-family:sans-serif;background:#fff0f6;"&gt;
+  &lt;h1 style="color:#FB7299;font-size:3em;"&gt;Hello Puppeteer!&lt;/h1&gt;
   &lt;p&gt;当前时间: {{time}}&lt;/p&gt;
+  &lt;div style="padding:20px;background:white;border-radius:12px;margin-top:20px;"&gt;
+     Test Card
+  &lt;/div&gt;
 &lt;/body&gt;
 &lt;/html&gt;</textarea>
                                 </div>
+
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">模板数据 (JSON)</label>
-                                    <input id="testData" class="input-field" placeholder='{"time": "2024-01-01"}' />
+                                    <label class="text-xs font-semibold text-gray-500 uppercase mb-1 block">模板数据
+                                        (JSON)</label>
+                                    <input id="testData" class="input-field font-mono text-sm"
+                                        placeholder='{"time": "2024-01-01"}' value='{"time": "Now"}' />
                                 </div>
-                                <button onclick="runTest()" class="btn btn-primary w-full">执行渲染</button>
+
+                                <button onclick="runTest()" class="btn btn-primary w-full py-3">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                    执行渲染
+                                </button>
                             </div>
-                        </div>
-                        <div>
-                            <h3 class="font-bold mb-4">结果</h3>
-                            <div id="testResult"
-                                class="border rounded-lg p-4 min-h-[200px] flex items-center justify-center text-gray-400 dark:border-gray-700">
-                                点击"执行渲染"查看结果
+
+                            <div class="glass-card p-6 flex flex-col">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-bold">结果预览</h3>
+                                    <span id="testTime" class="text-xs text-gray-500 font-mono"></span>
+                                </div>
+                                <div id="testResult"
+                                    class="flex-1 bg-gray-100 dark:bg-black rounded-lg border border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center overflow-hidden min-h-[300px]">
+                                    <div class="text-gray-400 text-sm">等待渲染...</div>
+                                </div>
                             </div>
-                            <p id="testTime" class="mt-2 text-sm text-gray-500"></p>
                         </div>
                     </div>
-                </div>
 
-                <!-- API 文档 -->
-                <div id="tab-api" class="tab-content p-6">
-                    <h3 class="font-bold mb-4">API 端点</h3>
-                    <div class="space-y-6">
-                        <div>
-                            <h4 class="font-semibold text-primary mb-2">POST /puppeteer/screenshot</h4>
-                            <p class="text-sm text-gray-500 mb-2">对 URL 或 HTML 进行截图</p>
-                            <div class="code-block">
-                                <pre>{
-  "file": "https://example.com",  // URL 或 HTML 字符串
-  "file_type": "auto",            // auto | htmlString
-  "selector": "body",             // 截图元素选择器
-  "encoding": "base64",           // base64 | binary
-  "type": "png",                  // png | jpeg | webp
-  "fullPage": false,              // 是否全页面截图
-  "setViewport": {                // 视口设置
+                    <!-- Page: API -->
+                    <div id="page-api" class="page-content">
+                        <div class="glass-card p-6">
+                            <h3 class="font-bold mb-6 text-lg">核心功能接口</h3>
+                            <div class="space-y-8">
+                                <!-- POST /screenshot -->
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span
+                                            class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded">POST</span>
+                                        <code class="text-sm font-semibold">/puppeteer/screenshot</code>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mb-3">通用截图接口，支持 URL、本地文件、HTML 字符串</p>
+                                    <pre>{
+  "file": "https://example.com",        // 必填: URL / HTML字符串 / 文件路径
+  "file_type": "auto",                  // 可选: auto | htmlString | url | file
+  "data": { "name": "World" },          // 可选: 模板数据 (Handlebars)
+  "selector": "body",                   // 可选: 截图元素选择器
+  "type": "png",                        // 可选: png | jpeg | webp
+  "quality": 80,                        // 可选: 图片质量 (1-100, 仅 jpeg/webp)
+  "encoding": "base64",                 // 可选: base64 | binary (默认 base64)
+  "fullPage": false,                    // 可选: 是否截取全屏
+  "omitBackground": false,              // 可选: 是否隐藏默认背景(透明背景)
+  "setViewport": {                      // 可选: 视口设置
     "width": 1280,
     "height": 800,
-    "deviceScaleFactor": 2
-  }
+    "deviceScaleFactor": 1
+  },
+  "waitForSelector": ".content",        // 可选: 等待元素出现
+  "waitForTimeout": 1000                // 可选: 等待毫秒数
 }</pre>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-primary mb-2">POST /puppeteer/render</h4>
-                            <p class="text-sm text-gray-500 mb-2">渲染 HTML 模板并截图</p>
-                            <div class="code-block">
-                                <pre>{
-  "html": "&lt;h1&gt;Hello {{name}}&lt;/h1&gt;",  // HTML 模板
-  "data": { "name": "World" },          // 模板数据
-  "selector": "body",
+                                </div>
+
+                                <!-- POST /render -->
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span
+                                            class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded">POST</span>
+                                        <code class="text-sm font-semibold">/puppeteer/render</code>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mb-3">HTML 模板渲染专用接口 (是 /screenshot 的别名，更语义化)</p>
+                                    <pre>{
+  "html": "&lt;h1&gt;Hello {{name}}&lt;/h1&gt;",  // 必填: HTML 模板字符串
+  "data": { "name": "World" },          // 可选: 模板数据
+  "selector": "body",                   // ...其他参数同 /screenshot
   "encoding": "base64"
 }</pre>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-primary mb-2">GET /puppeteer/screenshot?url=xxx</h4>
-                            <p class="text-sm text-gray-500 mb-2">简单 URL 截图</p>
-                            <div class="code-block">
-                                <pre>GET /puppeteer/screenshot?url=https://example.com&raw=true
+                                </div>
 
-// 返回图片二进制数据</pre>
+                                <!-- GET /screenshot -->
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span
+                                            class="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded">GET</span>
+                                        <code class="text-sm font-semibold">/puppeteer/screenshot</code>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mb-3">快速 URL 截图 (Query 参数)</p>
+                                    <div
+                                        class="text-sm font-mono bg-gray-50 dark:bg-[#2a2b2e] p-3 rounded border dark:border-gray-700 leading-relaxed">
+                                        <div><span class="text-purple-600">url</span>: https://example.com (必填)</div>
+                                        <div><span class="text-gray-500">selector</span>: body</div>
+                                        <div><span class="text-gray-500">fullPage</span>: true | false</div>
+                                        <div><span class="text-gray-500">type</span>: png | jpeg | webp</div>
+                                        <div><span class="text-gray-500">raw</span>: true (直接返回图片流)</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <h4 class="font-semibold text-primary mb-2">GET /puppeteer/browser/status</h4>
-                            <p class="text-sm text-gray-500 mb-2">获取浏览器状态</p>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-primary mb-2">POST /puppeteer/browser/start | stop | restart
-                            </h4>
-                            <p class="text-sm text-gray-500 mb-2">控制浏览器启动/停止/重启</p>
+
+                        <div class="glass-card p-6 mt-6">
+                            <h3 class="font-bold mb-6 text-lg">管理与状态接口</h3>
+                            <div class="space-y-8">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- Browser Commands -->
+                                    <div class="p-4 bg-gray-50 dark:bg-[#202124] rounded-lg">
+                                        <div class="font-bold text-sm mb-2 text-gray-700 dark:text-gray-300">浏览器实例控制
+                                        </div>
+                                        <div class="space-y-2 text-xs font-mono">
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">POST</span>
+                                                <span>/puppeteer/browser/start</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">POST</span>
+                                                <span>/puppeteer/browser/stop</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">POST</span>
+                                                <span>/puppeteer/browser/restart</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="px-1.5 py-0.5 rounded bg-green-100 text-green-800">GET</span>
+                                                <span>/puppeteer/browser/status</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- System Config -->
+                                    <div class="p-4 bg-gray-50 dark:bg-[#202124] rounded-lg">
+                                        <div class="font-bold text-sm mb-2 text-gray-700 dark:text-gray-300">系统配置</div>
+                                        <div class="space-y-2 text-xs font-mono">
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="px-1.5 py-0.5 rounded bg-green-100 text-green-800">GET</span>
+                                                <span>/puppeteer/status</span>
+                                                <span class="text-gray-400">// 插件整体状态</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="px-1.5 py-0.5 rounded bg-green-100 text-green-800">GET</span>
+                                                <span>/puppeteer/config</span>
+                                                <span class="text-gray-400">// 获取当前配置</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">POST</span>
+                                                <span>/puppeteer/config</span>
+                                                <span class="text-gray-400">// 更新配置</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <script>
+        // === Core Logic ===
         const ROUTE_PREFIX = '/puppeteer';
         const token = new URLSearchParams(window.location.search).get('webui_token') || '';
 
@@ -387,7 +591,6 @@
             return h;
         }
 
-        // 动态解析 API 基础路径
         async function resolveApiBase() {
             const tries = [];
             if (window.__PLUGIN_NAME__) tries.push(window.__PLUGIN_NAME__);
@@ -397,8 +600,6 @@
 
             const extMatch = location.pathname.match(/\/ext\/([^\/]+)/);
             if (extMatch) tries.unshift(extMatch[1]);
-
-            // 默认兜底
             tries.push('napcat-plugin-puppeteer');
 
             for (const name of [...new Set(tries.filter(Boolean))]) {
@@ -426,84 +627,114 @@
             return res.json();
         }
 
-        // 深色模式
-        function toggleDarkMode() {
-            document.documentElement.classList.toggle('dark');
-            const isDark = document.documentElement.classList.contains('dark');
-            localStorage.setItem('darkMode', isDark);
-            document.getElementById('darkModeIcon').textContent = isDark ? '☀️' : '🌙';
-        }
+        // === UI Logic ===
 
-        // 初始化深色模式
-        if (localStorage.getItem('darkMode') === 'true') {
-            document.documentElement.classList.add('dark');
-            document.getElementById('darkModeIcon').textContent = '☀️';
-        }
+        // Scroll Effect
+        const mainContent = document.getElementById('mainContent');
+        const mainHeader = document.getElementById('mainHeader');
 
-        // 选项卡切换
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-            });
+        mainContent.addEventListener('scroll', () => {
+            const isScrolled = mainContent.scrollTop > 10;
+            if (isScrolled) {
+                mainHeader.classList.remove('border-transparent');
+                mainHeader.classList.add('shadow-lg', 'border-gray-200', 'dark:border-gray-800');
+            } else {
+                mainHeader.classList.add('border-transparent');
+                mainHeader.classList.remove('shadow-lg', 'border-gray-200', 'dark:border-gray-800');
+            }
         });
 
-        // 获取状态
+        // Navigation
+        function switchPage(pageId, el) {
+            // Update Menu
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+
+            // Update Content
+            document.querySelectorAll('.page-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+
+            // Update Header
+            const docMap = {
+                'status': ['运行状态', '查看插件和服务概览'],
+                'test': ['渲染测试', '测试 HTML 渲染效果'],
+                'api': ['API 文档', '接口调用参考']
+            };
+            document.getElementById('pageTitle').textContent = docMap[pageId][0];
+            document.getElementById('pageDesc').textContent = docMap[pageId][1];
+        }
+
+        // Dark Mode Logic - Follow System
+        function updateTheme() {
+            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        // 初始化主题并监听系统主题变化
+        updateTheme();
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
+
+        // Status Logic
         async function fetchStatus() {
             try {
                 const data = await authFetch('/status');
                 if (data.code === 0) {
                     const browser = data.data.browser || {};
 
-                    // 更新顶部状态
-                    const statusEl = document.getElementById('browserStatus');
-                    const dot = statusEl.querySelector('.status-dot');
-                    const text = statusEl.querySelector('span:last-child');
+                    // Top Status
+                    const dot = document.getElementById('statusDot');
+                    const txt = document.getElementById('statusText');
                     dot.className = 'status-dot ' + (browser.connected ? 'connected' : 'disconnected');
-                    text.textContent = browser.connected ? '已连接' : '未连接';
+                    txt.textContent = browser.connected ? '服务正常' : '服务断开';
 
-                    // 更新统计
+                    // Cards
                     document.getElementById('statTotalRenders').textContent = browser.totalRenders || 0;
                     document.getElementById('statFailedRenders').textContent = browser.failedRenders || 0;
                     document.getElementById('statPageCount').textContent = browser.pageCount || 0;
                     document.getElementById('statUptime').textContent = data.data.uptimeFormatted || '-';
 
-                    // 更新详细信息
+                    // Info
                     document.getElementById('infoConnected').textContent = browser.connected ? '✅ 已连接' : '❌ 未连接';
+                    document.getElementById('infoConnected').className = 'font-medium ' + (browser.connected ? 'text-green-500' : 'text-red-500');
                     document.getElementById('infoVersion').textContent = browser.version || '-';
                     const pathEl = document.getElementById('infoPath');
                     pathEl.textContent = browser.executablePath || '-';
                     pathEl.title = browser.executablePath || '';
                 }
             } catch (e) {
-                console.error('获取状态失败:', e);
+                console.error('Status fetch failed:', e);
             }
-        }        // 浏览器控制
-        async function startBrowser() {
-            await browserAction('start', '启动');
         }
-        async function stopBrowser() {
-            await browserAction('stop', '停止');
-        }
-        async function restartBrowser() {
-            await browserAction('restart', '重启');
-        }
+
+        // Action Logic
+        async function startBrowser() { await browserAction('start', '启动'); }
+        async function stopBrowser() { await browserAction('stop', '停止'); }
+        async function restartBrowser() { await browserAction('restart', '重启'); }
 
         async function browserAction(action, name) {
             const resultEl = document.getElementById('operationResult');
-            resultEl.textContent = `正在${name}浏览器...`;
+            resultEl.textContent = `⏳ 正在${name}浏览器...`;
+            resultEl.className = 'mt-6 text-sm h-6 rounded p-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200';
             try {
                 const data = await authFetch('/browser/' + action, { method: 'POST' });
-                resultEl.textContent = data.message || (data.code === 0 ? `${name}成功` : `${name}失败`);
-                setTimeout(fetchStatus, 500);
+                const success = data.code === 0;
+                resultEl.textContent = data.message || (success ? `${name}成功` : `${name}失败`);
+                resultEl.className = success
+                    ? 'mt-6 text-sm h-6 rounded p-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
+                    : 'mt-6 text-sm h-6 rounded p-1 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200';
+
+                setTimeout(fetchStatus, 1000);
             } catch (e) {
                 resultEl.textContent = `${name}失败: ` + e.message;
+                resultEl.className = 'mt-6 text-sm h-6 rounded p-1 bg-red-100 text-red-800';
             }
         }
 
-        // 渲染测试
+        // Test Logic
         async function runTest() {
             const type = document.getElementById('testType').value;
             const content = document.getElementById('testContent').value;
@@ -511,39 +742,38 @@
             const resultEl = document.getElementById('testResult');
             const timeEl = document.getElementById('testTime');
 
-            resultEl.innerHTML = '<span class="animate-pulse">渲染中...</span>';
+            resultEl.innerHTML = '<div class="flex flex-col items-center gap-2"><div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div><span class="text-sm text-gray-400">渲染中...</span></div>';
             timeEl.textContent = '';
 
             try {
                 let data;
-                try {
-                    data = dataStr ? JSON.parse(dataStr) : undefined;
-                } catch (e) {
-                    throw new Error('模板数据 JSON 格式错误');
-                }
+                try { data = dataStr ? JSON.parse(dataStr) : undefined; }
+                catch (e) { throw new Error('模板数据 JSON 格式错误'); }
 
                 const body = type === 'html'
                     ? { html: content, data, encoding: 'base64' }
                     : { file: content, encoding: 'base64' };
 
                 const endpoint = type === 'html' ? '/render' : '/screenshot';
+                const startTime = Date.now();
                 const result = await authFetch(endpoint, {
                     method: 'POST',
                     body: JSON.stringify(body)
                 });
+                const duration = Date.now() - startTime;
 
                 if (result.code === 0) {
-                    resultEl.innerHTML = `<img src="data:image/png;base64,${result.data}" style="max-width:100%;border-radius:8px;" />`;
-                    timeEl.textContent = `渲染耗时: ${result.time}ms`;
+                    resultEl.innerHTML = `<img src="data:image/png;base64,${result.data}" class="max-w-full h-auto shadow-lg rounded" />`;
+                    timeEl.textContent = `耗时: ${result.time || duration}ms`;
                 } else {
-                    resultEl.innerHTML = `<span class="text-red-500">❌ ${result.message}</span>`;
+                    resultEl.innerHTML = `<div class="text-red-500 p-4 bg-red-50 dark:bg-red-900/10 rounded">❌ ${result.message}</div>`;
                 }
             } catch (e) {
-                resultEl.innerHTML = `<span class="text-red-500">❌ ${e.message}</span>`;
+                resultEl.innerHTML = `<div class="text-red-500 p-4 bg-red-50 dark:bg-red-900/10 rounded">❌ ${e.message}</div>`;
             }
         }
 
-        // 初始化
+        // Init
         fetchStatus();
         setInterval(fetchStatus, 5000);
     </script>
