@@ -1454,7 +1454,7 @@ const result = await response.json();
                                         <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">浏览器路径
                                             (可选)</label>
                                         <input id="settingsExecPath" type="text" class="input-field font-mono text-sm"
-                                            placeholder="留空使用内置 Chromium" />
+                                            placeholder="留空自动检测系统 Chrome/Edge" />
                                         <p class="text-xs text-gray-400 mt-1">自定义 Chrome/Chromium 可执行文件路径</p>
                                     </div>
 
@@ -1956,20 +1956,20 @@ const result = await response.json();
                     const config = data.data;
 
                     // Browser settings
-                    document.getElementById('settingsMaxPages').value = config.maxPages || defaultSettings.maxPages;
-                    document.getElementById('settingsLockTimeout').value = config.lockTimeout || defaultSettings.lockTimeout;
+                    document.getElementById('settingsMaxPages').value = config.browser?.maxPages || defaultSettings.maxPages;
+                    document.getElementById('settingsLockTimeout').value = config.browser?.timeout || defaultSettings.lockTimeout;
                     document.getElementById('settingsExecPath').value = config.browser?.executablePath || '';
                     document.getElementById('settingsBrowserArgs').value = (config.browser?.args || []).join(',');
                     document.getElementById('settingsHeadless').checked = config.browser?.headless !== false;
 
                     // Render defaults
-                    document.getElementById('settingsDefaultWidth').value = config.defaultViewport?.width || defaultSettings.defaultWidth;
-                    document.getElementById('settingsDefaultHeight').value = config.defaultViewport?.height || defaultSettings.defaultHeight;
-                    document.getElementById('settingsDefaultScale').value = config.defaultViewport?.deviceScaleFactor || defaultSettings.defaultScale;
+                    document.getElementById('settingsDefaultWidth').value = config.browser?.defaultViewportWidth || defaultSettings.defaultWidth;
+                    document.getElementById('settingsDefaultHeight').value = config.browser?.defaultViewportHeight || defaultSettings.defaultHeight;
+                    document.getElementById('settingsDefaultScale').value = config.browser?.deviceScaleFactor || defaultSettings.defaultScale;
 
                     // Other settings
                     document.getElementById('settingsDebug').checked = config.debug || false;
-                    document.getElementById('settingsAutoStart').checked = config.autoStart !== false;
+                    document.getElementById('settingsAutoStart').checked = config.enabled !== false;
 
                     // 绑定实时保存事件
                     bindSettingsAutoSave();
@@ -2018,22 +2018,20 @@ const result = await response.json();
         async function saveSettings(showSuccessToast = true) {
             try {
                 const config = {
-                    maxPages: parseInt(document.getElementById('settingsMaxPages').value) || defaultSettings.maxPages,
-                    lockTimeout: parseInt(document.getElementById('settingsLockTimeout').value) || defaultSettings.lockTimeout,
+                    enabled: document.getElementById('settingsAutoStart').checked,
                     browser: {
+                        maxPages: parseInt(document.getElementById('settingsMaxPages').value) || defaultSettings.maxPages,
+                        timeout: parseInt(document.getElementById('settingsLockTimeout').value) || defaultSettings.lockTimeout,
                         headless: document.getElementById('settingsHeadless').checked,
                         executablePath: document.getElementById('settingsExecPath').value || undefined,
                         args: document.getElementById('settingsBrowserArgs').value
                             ? document.getElementById('settingsBrowserArgs').value.split(',').map(s => s.trim()).filter(Boolean)
-                            : undefined
-                    },
-                    defaultViewport: {
-                        width: parseInt(document.getElementById('settingsDefaultWidth').value) || defaultSettings.defaultWidth,
-                        height: parseInt(document.getElementById('settingsDefaultHeight').value) || defaultSettings.defaultHeight,
+                            : undefined,
+                        defaultViewportWidth: parseInt(document.getElementById('settingsDefaultWidth').value) || defaultSettings.defaultWidth,
+                        defaultViewportHeight: parseInt(document.getElementById('settingsDefaultHeight').value) || defaultSettings.defaultHeight,
                         deviceScaleFactor: parseFloat(document.getElementById('settingsDefaultScale').value) || defaultSettings.defaultScale
                     },
-                    debug: document.getElementById('settingsDebug').checked,
-                    autoStart: document.getElementById('settingsAutoStart').checked
+                    debug: document.getElementById('settingsDebug').checked
                 };
 
                 // Clean up undefined values in browser config

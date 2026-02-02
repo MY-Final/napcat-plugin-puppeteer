@@ -42,30 +42,42 @@ export const DEFAULT_CONFIG: PluginConfig = {
 export function initConfigUI(ctx: NapCatPluginContext) {
     const schema = ctx.NapCatConfig.combine(
         ctx.NapCatConfig.html(`
-            <div style="padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: 20px; color: white;">
-                <h3 style="margin: 0; font-size: 18px;">🎨 Puppeteer 渲染服务</h3>
-                <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.9;">提供 HTML/模板截图渲染 API，供其他插件调用。</p>
-                <p style="margin: 6px 0 0; font-size: 12px; opacity: 0.8;">💡 其他插件可通过 HTTP API 调用渲染服务生成图片。</p>
+            <div style="padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); font-family: system-ui, -apple-system, sans-serif;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <div style="width: 36px; height: 36px; background: #fff1f2; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fb7299; flex-shrink: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #374151;">Puppeteer 渲染服务</h3>
+                        <p style="margin: 2px 0 0; font-size: 12px; color: #9ca3af;">napcat-plugin-puppeteer</p>
+                    </div>
+                </div>
+                <p style="margin: 0 0 4px; font-size: 13px; color: #6b7280; line-height: 1.5;">提供基于 Chromium 的 HTML/模板截图渲染能力，支持多页签并发与自定义视口配置。</p>
             </div>
         `),
         // 全局开关
         ctx.NapCatConfig.boolean('enabled', '启用渲染服务', DEFAULT_CONFIG.enabled, '开启后提供截图渲染 API'),
-        // 浏览器路径
-        ctx.NapCatConfig.text('browser.executablePath', '浏览器路径', DEFAULT_CONFIG.browser.executablePath || '', '留空则自动检测系统 Chrome/Edge 路径'),
-        // 无头模式
-        ctx.NapCatConfig.boolean('browser.headless', '无头模式', DEFAULT_CONFIG.browser.headless ?? true, '是否隐藏浏览器窗口'),
-        // 最大并发
-        ctx.NapCatConfig.text('browser.maxPages', '最大并发页面数', String(DEFAULT_CONFIG.browser.maxPages ?? 5), '同时打开的最大页面数'),
-        // 超时时间
-        ctx.NapCatConfig.text('browser.timeout', '默认超时时间 (ms)', String(DEFAULT_CONFIG.browser.timeout ?? 30000), '页面加载超时时间'),
-        // 视口宽度
-        ctx.NapCatConfig.text('browser.defaultViewportWidth', '默认视口宽度', String(DEFAULT_CONFIG.browser.defaultViewportWidth ?? 1280), '截图默认宽度'),
-        // 视口高度
-        ctx.NapCatConfig.text('browser.defaultViewportHeight', '默认视口高度', String(DEFAULT_CONFIG.browser.defaultViewportHeight ?? 800), '截图默认高度'),
-        // 设备像素比
-        ctx.NapCatConfig.text('browser.deviceScaleFactor', '设备像素比', String(DEFAULT_CONFIG.browser.deviceScaleFactor ?? 2), '截图清晰度，推荐 1-3'),
-        // 调试模式
-        ctx.NapCatConfig.boolean('debug', '调试模式', DEFAULT_CONFIG.debug ?? false, '输出详细日志'),
+        // 提示信息
+        ctx.NapCatConfig.html(`
+            <div style="padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 10px; display: flex; gap: 10px; align-items: center; font-family: system-ui, -apple-system, sans-serif;">
+                <div style="color: #6b7280; flex-shrink: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                </div>
+                <div style="font-size: 13px; color: #4b5563;">
+                    更多高级配置（浏览器路径、并发数、视口设置等）请前往 
+                    <a href="#" onclick="document.querySelector('[data-id=\\'napcat-plugin-puppeteer\\'] .plugin-console-btn').click(); return false;" style="color: #fb7299; text-decoration: none; font-weight: 600; transition: opacity 0.2s;">WebUI 控制台</a> 
+                    进行管理。
+                </div>
+            </div>
+        `)
     );
 
     return schema;
