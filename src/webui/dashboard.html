@@ -1305,6 +1305,15 @@
             return h;
         }
 
+        // 构建带 webui_token 的 URL
+        function buildUrl(base, path) {
+            const url = new URL(base + ROUTE_PREFIX + path, window.location.origin);
+            if (webuiToken) {
+                url.searchParams.set('webui_token', webuiToken);
+            }
+            return url.toString();
+        }
+
         async function resolveApiBase() {
             const tries = [];
             if (window.__PLUGIN_NAME__) tries.push(window.__PLUGIN_NAME__);
