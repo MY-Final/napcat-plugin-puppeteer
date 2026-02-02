@@ -835,6 +835,10 @@
                             <div class="hidden lg:block w-56 flex-shrink-0 sticky top-28">
                                 <div
                                     class="bg-white dark:bg-[#202124] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-3">
+                                    <div class="text-xs font-bold text-gray-400 uppercase px-3 py-2">快速开始</div>
+                                    <a onclick="scrollToApi('api-quickstart')" class="api-sidebar-link">调用说明</a>
+
+                                    <div class="h-px bg-gray-100 dark:bg-gray-700 my-2"></div>
                                     <div class="text-xs font-bold text-gray-400 uppercase px-3 py-2">核心服务</div>
                                     <a onclick="scrollToApi('api-screenshot')" class="api-sidebar-link">截图
                                         (Screenshot)</a>
@@ -856,6 +860,129 @@
 
                             <!-- Right Content -->
                             <div class="flex-1 w-full min-w-0 space-y-12 pb-24">
+
+                                <!-- Section: Quick Start -->
+                                <section id="api-quickstart">
+                                    <h3
+                                        class="flex items-center gap-2 text-xl font-bold mb-6 text-gray-800 dark:text-gray-100">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" class="text-primary">
+                                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                        </svg>
+                                        快速开始
+                                    </h3>
+
+                                    <!-- 完整路径说明 -->
+                                    <div class="glass-card p-6 mb-6">
+                                        <div class="flex items-start gap-3 mb-4">
+                                            <div
+                                                class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-500 flex-shrink-0">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-lg mb-2">API 完整路径</h4>
+                                                <p class="text-sm text-gray-500 mb-3">所有 API 的完整调用路径格式为：</p>
+                                                <div
+                                                    class="bg-gray-900 text-gray-100 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                                                    <span class="text-gray-400">{host}</span><span
+                                                        class="text-green-400">/api/Plugin/ext/napcat-plugin-puppeteer/</span><span
+                                                        class="text-yellow-400">{endpoint}</span>
+                                                </div>
+                                                <p class="text-xs text-gray-400 mt-2">例如：<code
+                                                        class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/render</code>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 调用示例 -->
+                                    <div class="glass-card p-6">
+                                        <div class="flex items-start gap-3 mb-4">
+                                            <div
+                                                class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center text-green-500 flex-shrink-0">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <polyline points="16 18 22 12 16 6"></polyline>
+                                                    <polyline points="8 6 2 12 8 18"></polyline>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <h4 class="font-bold text-lg mb-2">其他插件调用示例</h4>
+                                                <p class="text-sm text-gray-500 mb-4">在 NapCat 插件中调用渲染服务：</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-4">
+                                            <div>
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <span class="method-badge method-POST">POST</span>
+                                                    <span class="text-xs font-semibold text-gray-500">/render - HTML
+                                                        模板渲染</span>
+                                                </div>
+                                                <pre class="text-xs overflow-x-auto">// 在其他插件中调用
+const response = await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/render', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        html: '&lt;div style="padding:20px;background:#fff;"&gt;&lt;h1&gt;Hello {{name}}&lt;/h1&gt;&lt;/div&gt;',
+        data: { name: 'World' },
+        encoding: 'base64'
+    })
+});
+const result = await response.json();
+// result.data 为 Base64 编码的图片数据</pre>
+                                            </div>
+
+                                            <div>
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <span class="method-badge method-POST">POST</span>
+                                                    <span class="text-xs font-semibold text-gray-500">/screenshot - URL
+                                                        截图</span>
+                                                </div>
+                                                <pre class="text-xs overflow-x-auto">const response = await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/screenshot', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        file: 'https://example.com',
+        file_type: 'url',
+        encoding: 'base64',
+        setViewport: { width: 1280, height: 800 }
+    })
+});
+const result = await response.json();
+// result.data 为 Base64 编码的截图</pre>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            class="mt-4 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
+                                            <div class="flex gap-2 text-sm text-amber-800 dark:text-amber-200">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" class="flex-shrink-0 mt-0.5">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                                </svg>
+                                                <div>
+                                                    <p class="font-medium">提示</p>
+                                                    <p class="text-xs text-amber-700 dark:text-amber-300 mt-1">请将
+                                                        <code>localhost:6099</code> 替换为实际的 NapCat
+                                                        服务地址和端口。插件间通信无需认证，可直接调用。
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
 
                                 <!-- Section: Core -->
                                 <section>

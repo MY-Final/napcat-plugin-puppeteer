@@ -8,103 +8,297 @@ NapCat Puppeteer 渲染服务插件 - 提供 HTML/模板截图渲染 API，供�
 - 📝 **模板语法** - 支持 `{{key}}` 模板变量替换
 - 📐 **灵活配置** - 自定义视口、选择器、图片格式
 - 📄 **分页截图** - 支持长页面自动分页
-- 🔒 **API 认证** - 强制认证密钥保护，首次启动自动生成安全密钥
 - 🌐 **WebUI 管理** - 可视化控制面板
+- 🔓 **插件间通信** - 无需认证，直接调用
 
 ## 安装
 
 1. 将 `dist` 目录复制到 NapCat 插件目录
-2. 确保系统已安装 Chrome/Edge 浏览器
+2. 确保系统已安装 Chrome/Chromium 浏览器
 3. 在 WebUI 配置浏览器路径（可选，默认自动检测）
 
-## API 端点
+---
 
-所有 API 均以 `/puppeteer` 为前缀。
+## 快速开始
+
+### API 基础路径
+
+所有 API 的完整调用路径格式为：
+
+```
+{NapCat服务地址}/api/Plugin/ext/napcat-plugin-puppeteer{端点}
+```
+
+**示例：**
+```
+http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/render
+http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/screenshot
+http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/status
+```
+
+> 💡 请将 `localhost:6099` 替换为你实际的 NapCat 服务地址和端口
+
+### 最简调用示例
+
+```javascript
+// 渲染 HTML 并获取截图
+const response = await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/render', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        html: '<h1 style="color: red;">Hello World!</h1>',
+        encoding: 'base64'
+    })
+});
+
+const result = await response.json();
+console.log(result.data); // Base64 编码的 PNG 图片
+```
+
+---
+
+## API 端点详解
 
 ### 核心渲染服务
 
-#### 1. 截图接口 (POST)
-**Endpoint:** `/puppeteer/screenshot`  
-**描述:** 通用截图接口，支持 URL、本地文件或 HTML 字符串。
+#### 1. HTML 渲染接口 (POST /render)
+
+**完整路径:** `http://{host}/api/Plugin/ext/napcat-plugin-puppeteer/render`
+
+**描述:** 将 HTML 模板渲染为图片，支持模板变量替换。
 
 **Request Body (JSON):**
-```json
-{
-  "file": "https://example.com",        // [必填] URL / HTML字符串 / 本地文件路径
-  "file_type": "auto",                  // [可选] auto | htmlString | url | file
-  "selector": "body",                   // [可选] 截图元素选择器，默认 body
-  "omitBackground": false,              // [可选] 是否隐藏默认白色背景（透明背景）
-  "type": "png",                        // [可选] 输出格式: png | jpeg | webp
-  "quality": 80,                        // [可选] 图片质量 (1-100, 仅 jpeg/webp)
-  "encoding": "base64",                 // [可选] 返回编码: base64 | binary (默认 base64)
-  "fullPage": false,                    // [可选] 全网页截图 (true时忽略 selector)
-  "data": { "name": "World" },          // [可选] Handlebars 模板数据
-  "waitSelector": "#content",           // [可选] 等待指定元素出现后再截图
-  "setViewport": {                      // [可选] 设置视口大小
-    "width": 1280,
-    "height": 800,
-    "deviceScaleFactor": 1
-  }
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `html` | string | 是 | HTML 模板字符串 |
+| `data` | object | 否 | 模板变量数据，用于替换 `{{key}}` |
+| `selector` | string | 否 | 截图元素选择器，默认 `body` |
+| `encoding` | string | 否 | 返回编码: `base64` (默认) 或 `binary` |
+| `type` | string | 否 | 图片格式: `png` (默认) / `jpeg` / `webp` |
+| `quality` | number | 否 | 图片质量 1-100 (仅 jpeg/webp) |
+| `omitBackground` | boolean | 否 | 透明背景，默认 `false` |
+| `setViewport` | object | 否 | 视口设置 `{ width, height, deviceScaleFactor }` |
+| `waitForSelector` | string | 否 | 等待指定元素出现后再截图 |
+| `waitForTimeout` | number | 否 | 额外等待时间 (ms) |
+
+**示例请求:**
+
+```javascript
+const response = await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/render', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        html: `
+            <div style="padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h1 style="color: white; font-size: 48px;">{{title}}</h1>
+                <p style="color: rgba(255,255,255,0.8);">{{content}}</p>
+            </div>
+        `,
+        data: {
+            title: '欢迎使用',
+            content: '这是一个渲染示例'
+        },
+        encoding: 'base64',
+        setViewport: {
+            width: 800,
+            height: 600,
+            deviceScaleFactor: 2
+        }
+    })
+});
+
+const result = await response.json();
+if (result.code === 0) {
+    // result.data 是 Base64 编码的图片
+    // result.time 是渲染耗时 (ms)
 }
 ```
 
-**Response (JSON):**
+**响应示例:**
+
 ```json
 {
-  "code": 0,
-  "data": "Base64String...", // 截图数据
-  "message": "OK",
-  "time": 150                // 耗时(ms)
+    "code": 0,
+    "data": "iVBORw0KGgoAAAANSUhEUgAA...",
+    "time": 156
 }
 ```
 
-#### 2. HTML 渲染接口 (POST)
-**Endpoint:** `/puppeteer/render`  
-**描述:** `/screenshot` 的别名接口，更强调 HTML 模板渲染语义。
+---
+
+#### 2. 通用截图接口 (POST /screenshot)
+
+**完整路径:** `http://{host}/api/Plugin/ext/napcat-plugin-puppeteer/screenshot`
+
+**描述:** 通用截图接口，支持 URL、本地文件路径或 HTML 字符串。
 
 **Request Body (JSON):**
-```json
-{
-  "html": "<h1>Hello {{name}}</h1>",    // [必填] HTML 模板字符串
-  "data": { "name": "NapCat" },         // [可选] 模板数据
-  "selector": "h1"                      // [可选] 其他参数同 /screenshot
-}
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `file` | string | 是 | 目标内容 (URL / HTML字符串 / 本地文件路径) |
+| `file_type` | string | 否 | 内容类型: `auto` (默认) / `url` / `htmlString` / `file` |
+| `selector` | string | 否 | 截图元素选择器，默认 `body` |
+| `encoding` | string | 否 | 返回编码: `base64` (默认) 或 `binary` |
+| `type` | string | 否 | 图片格式: `png` (默认) / `jpeg` / `webp` |
+| `quality` | number | 否 | 图片质量 1-100 (仅 jpeg/webp) |
+| `fullPage` | boolean | 否 | 全页面截图，默认 `false` |
+| `omitBackground` | boolean | 否 | 透明背景，默认 `false` |
+| `data` | object | 否 | 模板变量数据 |
+| `setViewport` | object | 否 | 视口设置 `{ width, height, deviceScaleFactor }` |
+| `waitForSelector` | string | 否 | 等待指定元素出现后再截图 |
+| `waitForTimeout` | number | 否 | 额外等待时间 (ms) |
+| `headers` | object | 否 | 自定义请求头 (仅 URL 模式) |
+| `multiPage` | object | 否 | 分页截图配置 |
+
+**URL 截图示例:**
+
+```javascript
+const response = await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/screenshot', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        file: 'https://www.baidu.com',
+        file_type: 'url',
+        encoding: 'base64',
+        setViewport: {
+            width: 1920,
+            height: 1080,
+            deviceScaleFactor: 1
+        },
+        waitForTimeout: 1000  // 等待 1 秒确保页面加载完成
+    })
+});
 ```
 
-#### 3. 快速 URL 截图 (GET)
-**Endpoint:** `/puppeteer/screenshot`  
-**描述:** 通过 Query 参数进行快速 URL 截图，适合调试。
+**HTML 字符串截图示例:**
+
+```javascript
+const response = await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/screenshot', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        file: '<div style="padding:20px;"><h1>Hello</h1></div>',
+        file_type: 'htmlString',
+        selector: 'div',
+        encoding: 'base64'
+    })
+});
+```
+
+---
+
+#### 3. 快速 URL 截图 (GET /screenshot)
+
+**完整路径:** `http://{host}/api/Plugin/ext/napcat-plugin-puppeteer/screenshot?url=...`
+
+**描述:** 通过 Query 参数进行快速 URL 截图，适合调试和简单场景。
 
 **Query Parameters:**
+
 | 参数 | 必填 | 说明 |
 |------|------|------|
 | `url` | 是 | 目标网页 URL |
 | `width` | 否 | 视口宽度 (默认 1280) |
 | `height` | 否 | 视口高度 (默认 800) |
 | `selector` | 否 | 元素选择器 |
-| `raw` | 否 | 如为 `true`，直接返回 image 流而非 JSON |
+| `raw` | 否 | 如为 `true`，直接返回 image/png 流而非 JSON |
+
+**示例:**
+
+```
+GET http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/screenshot?url=https://example.com&width=1280&height=800
+```
+
+**直接获取图片流:**
+
+```
+GET http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/screenshot?url=https://example.com&raw=true
+```
 
 ---
 
 ### 浏览器实例控制
 
--   **GET** `/puppeteer/browser/status`
-    -   获取浏览器连接状态、版本、PID、打开页面数等信息。
--   **POST** `/puppeteer/browser/start`
-    -   手动启动浏览器实例。
--   **POST** `/puppeteer/browser/stop`
-    -   关闭浏览器实例及其所有页面。
--   **POST** `/puppeteer/browser/restart`
-    -   重启浏览器实例。
+#### GET /browser/status
+
+获取浏览器连接状态、版本、PID、打开页面数等信息。
+
+```javascript
+const response = await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/browser/status');
+const result = await response.json();
+// result.data: { connected, version, pageCount, pid, executablePath }
+```
+
+#### POST /browser/start
+
+手动启动浏览器实例。
+
+```javascript
+await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/browser/start', {
+    method: 'POST'
+});
+```
+
+#### POST /browser/stop
+
+关闭浏览器实例及其所有页面。
+
+```javascript
+await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/browser/stop', {
+    method: 'POST'
+});
+```
+
+#### POST /browser/restart
+
+重启浏览器实例。
+
+```javascript
+await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/browser/restart', {
+    method: 'POST'
+});
+```
+
+---
 
 ### 系统配置与状态
 
--   **GET** `/puppeteer/status`
-    -   获取插件整体统计信息（运行时长、渲染次数、失败次数）。
--   **GET** `/puppeteer/config`
-    -   获取当前生效的插件配置。
--   **POST** `/puppeteer/config`
-    -   更新插件配置（部分浏览器参数需要重启实例生效）。
+#### GET /status
+
+获取插件整体统计信息（运行时长、渲染次数、失败次数）。
+
+```javascript
+const response = await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/status');
+const result = await response.json();
+// result.data: { pluginName, uptime, uptimeFormatted, enabled, browser: {...} }
+```
+
+#### GET /config
+
+获取当前生效的插件配置。
+
+```javascript
+const response = await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/config');
+const result = await response.json();
+// result.data: { maxPages, lockTimeout, browser: {...}, ... }
+```
+
+#### POST /config
+
+更新插件配置（部分浏览器参数需要重启实例生效）。
+
+```javascript
+await fetch('http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        maxPages: 10,
+        debug: true
+    })
+});
+```
 
 ---
 
@@ -112,71 +306,142 @@ NapCat Puppeteer 渲染服务插件 - 提供 HTML/模板截图渲染 API，供�
 
 | Code | 说明 |
 |------|------|
-| 0 | 成功 |
-| -1 | 系统/未知错误 |
-| 400 | 请求参数错误 |
-| 401 | 认证失败 (Token 无效) |
-| 500 | 渲染失败或浏览器错误 |
+| `0` | 成功 |
+| `-1` | 系统/未知错误 |
+| `400` | 请求参数错误 |
+| `500` | 渲染失败或浏览器错误 |
+
+---
+
+## 在其他 NapCat 插件中使用
+
+### TypeScript 示例
+
+```typescript
+// 定义响应类型
+interface RenderResponse {
+    code: number;
+    data?: string;
+    message?: string;
+    time?: number;
+}
+
+// 封装渲染函数
+async function renderHtml(html: string, data?: Record<string, any>): Promise<string | null> {
+    const API_BASE = 'http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer';
+    
+    try {
+        const response = await fetch(`${API_BASE}/render`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                html,
+                data,
+                encoding: 'base64',
+                setViewport: {
+                    width: 800,
+                    height: 600,
+                    deviceScaleFactor: 2
+                }
+            })
+        });
+        
+        const result: RenderResponse = await response.json();
+        
+        if (result.code === 0 && result.data) {
+            return result.data; // Base64 图片数据
+        }
+        
+        console.error('渲染失败:', result.message);
+        return null;
+    } catch (error) {
+        console.error('请求失败:', error);
+        return null;
+    }
+}
+
+// 使用示例
+const imageBase64 = await renderHtml(
+    '<div style="padding:20px;"><h1>{{title}}</h1><p>{{desc}}</p></div>',
+    { title: '标题', desc: '描述内容' }
+);
+
+if (imageBase64) {
+    // 可以直接用于发送图片消息
+    // 例如: segment.image(`base64://${imageBase64}`)
 }
 ```
 
-## 其他插件调用示例
+### 完整插件调用示例
 
 ```typescript
-// 调用渲染 API（需要认证密钥）
-const AUTH_TOKEN = '你的认证密钥'; // 从配置页面获取
+// 在你的 NapCat 插件中
+import type { NapCatPluginContext } from 'napcat-types';
 
-const response = await fetch('http://localhost:端口/api/Plugin/ext/插件名/puppeteer/render', {
-  method: 'POST',
-  headers: { 
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${AUTH_TOKEN}`  // 认证头
-  },
-  body: JSON.stringify({
-    html: '<h1>Hello {{name}}</h1>',
-    data: { name: 'World' },
-    encoding: 'base64'
-  })
-});
+const PUPPETEER_API = 'http://localhost:6099/api/Plugin/ext/napcat-plugin-puppeteer';
 
-const { data } = await response.json();
-// data 是 base64 编码的图片
+export const plugin_init = async (ctx: NapCatPluginContext) => {
+    // 监听消息，生成欢迎图片
+    ctx.on('message.group', async (event) => {
+        if (event.raw_message === '/welcome') {
+            // 调用渲染服务
+            const response = await fetch(`${PUPPETEER_API}/render`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    html: `
+                        <div style="width:600px;padding:40px;background:#f0f0f0;text-align:center;">
+                            <h1 style="color:#333;">欢迎 ${event.sender.nickname}!</h1>
+                            <p style="color:#666;">加入时间: ${new Date().toLocaleString()}</p>
+                        </div>
+                    `,
+                    encoding: 'base64'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.code === 0) {
+                // 发送图片消息
+                await ctx.sendGroupMsg(event.group_id, [
+                    { type: 'image', data: { file: `base64://${result.data}` } }
+                ]);
+            }
+        }
+    });
+};
 ```
+
+---
 
 ## 配置项
 
 | 配置 | 说明 | 默认值 |
 |------|------|--------|
-| enabled | 启用渲染服务 | true |
-| browser.executablePath | 浏览器路径 | 自动检测 |
-| browser.headless | 无头模式 | true |
-| browser.maxPages | 最大并发页面数 | 5 |
-| browser.timeout | 默认超时时间 | 30000 |
-| browser.defaultViewportWidth | 默认视口宽度 | 1280 |
-| browser.defaultViewportHeight | 默认视口高度 | 800 |
-| browser.deviceScaleFactor | 设备像素比 | 2 |
-| authToken | API 认证密钥 | 自动生成 64 位安全密钥 |
-| debug | 调试模式 | false |
+| `enabled` | 启用渲染服务 | `true` |
+| `autoStart` | 插件加载时自动启动浏览器 | `true` |
+| `maxPages` | 最大并发页面数 | `10` |
+| `lockTimeout` | 页面锁定超时时间 (ms) | `30000` |
+| `browser.executablePath` | 浏览器可执行文件路径 | 自动检测 |
+| `browser.headless` | 无头模式 | `true` |
+| `browser.args` | 浏览器启动参数 | `[]` |
+| `defaultViewport.width` | 默认视口宽度 | `1280` |
+| `defaultViewport.height` | 默认视口高度 | `800` |
+| `defaultViewport.deviceScaleFactor` | 设备像素比 | `2` |
+| `debug` | 调试模式 | `false` |
 
-## API 认证
+---
 
-### 认证机制
+## WebUI 控制台
 
-所有渲染相关的 API 都需要认证密钥才能访问。插件首次启动时会自动生成一个 64 位的安全密钥，你也可以在 WebUI 配置页面自定义密钥。
+插件提供可视化控制台，可在 NapCat WebUI 中访问：
 
-### 认证方式
+- **运行状态** - 查看渲染统计、浏览器状态
+- **渲染测试** - 在线测试 HTML 渲染效果
+- **API 文档** - 完整的 API 参考和调用示例
+- **设置** - 配置浏览器参数和插件选项
 
-**HTTP Header 方式**
-```
-Authorization: Bearer <your-auth-token>
-```
-
-> ⚠️ 出于安全考虑，不支持 Query 参数传递密钥（密钥会被记录在服务器日志、浏览器历史等位置）
-
-### 获取认证密钥
-
-- 在 NapCat WebUI 的插件配置页面查看
-- 或在插件的 WebUI 控制台「设置」页面查看和修改
+---
 
 ## 开发
 
@@ -184,9 +449,36 @@ Authorization: Bearer <your-auth-token>
 # 安装依赖
 pnpm install
 
-# 开发构建
+# 类型检查
+npx tsc --noEmit
+
+# 构建
 pnpm run build
+
+# 输出: dist/index.mjs
 ```
+
+---
+
+## 常见问题
+
+### Q: 浏览器启动失败？
+
+1. 确保系统已安装 Chrome/Chromium 浏览器
+2. 在设置中配置正确的浏览器路径
+3. Linux 系统可能需要添加 `--no-sandbox` 启动参数
+
+### Q: 渲染结果为空白？
+
+1. 检查 HTML 是否有语法错误
+2. 尝试添加 `waitForTimeout` 等待页面渲染完成
+3. 检查 `selector` 是否正确匹配到元素
+
+### Q: 中文显示为方块？
+
+确保系统安装了中文字体，或在 HTML 中使用 Web 字体。
+
+---
 
 ## 许可证
 
