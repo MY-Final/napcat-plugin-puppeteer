@@ -161,9 +161,6 @@ pnpm install
 
 # 开发构建
 pnpm run build
-
-# 监听模式
-pnpm run watch
 ```
 
 ## 许可证
