@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Puppeteer 渲染服务 · 控制台</title>
+    <script src="static/plugin-info.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#667eea',
+                        secondary: '#764ba2',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            margin: 0;
+            background: #f0f2f5;
+            color: #1f2937;
+            font-size: 16px;
+            transition: background 0.3s, color 0.3s;
+        }
+        html.dark, html.dark body {
+            background: #1a1a2e;
+            color: #e5e7eb;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        html.dark .card {
+            background: #2a2a40;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        .status-dot.connected { background: #10b981; }
+        .status-dot.disconnected { background: #ef4444; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .input-field {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        html.dark .input-field {
+            background: #1a1a2e;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+        }
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+        .stat-card {
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+
+<body>
+    <div class="min-h-screen">
+        <!-- 顶部导航 -->
+        <header class="gradient-bg text-white p-4 shadow-lg">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🎨</span>
+                    <div>
+                        <h1 class="text-xl font-bold">Puppeteer 渲染服务</h1>
+                        <p class="text-sm opacity-80">HTML/模板截图渲染 API</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div id="browserStatus" class="flex items-center gap-2">
+                        <div class="status-dot disconnected"></div>
+                        <span class="text-sm">检查中...</span>
+                    </div>
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-white/10">
+                        <span id="darkModeIcon">🌙</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容 -->
+        <main class="max-w-6xl mx-auto p-4">
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="card stat-card">
+                    <div class="stat-value" id="statTotalRenders">0</div>
+                    <div class="text-gray-500 text-sm mt-1">总渲染次数</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-value" id="statFailedRenders">0</div>
+                    <div class="text-gray-500 text-sm mt-1">失败次数</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-value" id="statPageCount">0</div>
+                    <div class="text-gray-500 text-sm mt-1">当前页面数</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-value" id="statUptime">-</div>
+                    <div class="text-gray-500 text-sm mt-1">运行时间</div>
+                </div>
+            </div>
+
+            <!-- 选项卡 -->
+            <div class="card mb-6">
+                <div class="border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex">
+                        <button class="tab-btn active" data-tab="control">浏览器控制</button>
+                        <button class="tab-btn" data-tab="test">渲染测试</button>
+                        <button class="tab-btn" data-tab="api">API 文档</button>
+                    </div>
+                </div>
+
+                <!-- 浏览器控制 -->
+                <div id="tab-control" class="tab-content active p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold mb-4">浏览器状态</h3>
+                            <div id="browserInfo" class="space-y-3 text-sm">
+                                <div class="flex justify-between py-2 border-b dark:border-gray-700">
+                                    <span class="text-gray-500">连接状态</span>
+                                    <span id="infoConnected">-</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b dark:border-gray-700">
+                                    <span class="text-gray-500">浏览器版本</span>
+                                    <span id="infoVersion">-</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b dark:border-gray-700">
+                                    <span class="text-gray-500">可执行文件</span>
+                                    <span id="infoPath" class="truncate max-w-[200px]" title="">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold mb-4">操作</h3>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="startBrowser()" class="btn btn-primary">启动浏览器</button>
+                                <button onclick="restartBrowser()" class="btn btn-secondary">重启浏览器</button>
+                                <button onclick="stopBrowser()" class="btn btn-danger">停止浏览器</button>
+                            </div>
+                            <p id="operationResult" class="mt-4 text-sm text-gray-500"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 渲染测试 -->
+                <div id="tab-test" class="tab-content p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold mb-4">输入</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">类型</label>
+                                    <select id="testType" class="input-field">
+                                        <option value="html">HTML 字符串</option>
+                                        <option value="url">URL</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">内容</label>
+                                    <textarea id="testContent" class="input-field h-32" placeholder="输入 HTML 或 URL...">&lt;html&gt;
+&lt;body style="padding:20px;font-family:sans-serif;"&gt;
+  &lt;h1 style="color:#667eea;"&gt;Hello Puppeteer!&lt;/h1&gt;
+  &lt;p&gt;当前时间: {{time}}&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">模板数据 (JSON)</label>
+                                    <input id="testData" class="input-field" placeholder='{"time": "2024-01-01"}' />
+                                </div>
+                                <button onclick="runTest()" class="btn btn-primary w-full">执行渲染</button>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold mb-4">结果</h3>
+                            <div id="testResult" class="border rounded-lg p-4 min-h-[200px] flex items-center justify-center text-gray-400 dark:border-gray-700">
+                                点击"执行渲染"查看结果
+                            </div>
+                            <p id="testTime" class="mt-2 text-sm text-gray-500"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API 文档 -->
+                <div id="tab-api" class="tab-content p-6">
+                    <h3 class="font-bold mb-4">API 端点</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-semibold text-primary mb-2">POST /puppeteer/screenshot</h4>
+                            <p class="text-sm text-gray-500 mb-2">对 URL 或 HTML 进行截图</p>
+                            <div class="code-block">
+<pre>{
+  "file": "https://example.com",  // URL 或 HTML 字符串
+  "file_type": "auto",            // auto | htmlString
+  "selector": "body",             // 截图元素选择器
+  "encoding": "base64",           // base64 | binary
+  "type": "png",                  // png | jpeg | webp
+  "fullPage": false,              // 是否全页面截图
+  "setViewport": {                // 视口设置
+    "width": 1280,
+    "height": 800,
+    "deviceScaleFactor": 2
+  }
+}</pre>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-primary mb-2">POST /puppeteer/render</h4>
+                            <p class="text-sm text-gray-500 mb-2">渲染 HTML 模板并截图</p>
+                            <div class="code-block">
+<pre>{
+  "html": "&lt;h1&gt;Hello {{name}}&lt;/h1&gt;",  // HTML 模板
+  "data": { "name": "World" },          // 模板数据
+  "selector": "body",
+  "encoding": "base64"
+}</pre>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-primary mb-2">GET /puppeteer/screenshot?url=xxx</h4>
+                            <p class="text-sm text-gray-500 mb-2">简单 URL 截图</p>
+                            <div class="code-block">
+<pre>GET /puppeteer/screenshot?url=https://example.com&raw=true
+
+// 返回图片二进制数据</pre>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-primary mb-2">GET /puppeteer/browser/status</h4>
+                            <p class="text-sm text-gray-500 mb-2">获取浏览器状态</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-primary mb-2">POST /puppeteer/browser/start | stop | restart</h4>
+                            <p class="text-sm text-gray-500 mb-2">控制浏览器启动/停止/重启</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const PLUGIN_NAME = window.__PLUGIN_NAME__ || 'napcat-plugin-puppeteer';
+        const API_BASE = `/${PLUGIN_NAME}/puppeteer`;
+
+        // 深色模式
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('darkMode', isDark);
+            document.getElementById('darkModeIcon').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // 初始化深色模式
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+            document.getElementById('darkModeIcon').textContent = '☀️';
+        }
+
+        // 选项卡切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // 获取状态
+        async function fetchStatus() {
+            try {
+                const res = await fetch(API_BASE + '/status');
+                const data = await res.json();
+                if (data.code === 0) {
+                    const browser = data.data.browser || {};
+                    
+                    // 更新顶部状态
+                    const statusEl = document.getElementById('browserStatus');
+                    const dot = statusEl.querySelector('.status-dot');
+                    const text = statusEl.querySelector('span:last-child');
+                    dot.className = 'status-dot ' + (browser.connected ? 'connected' : 'disconnected');
+                    text.textContent = browser.connected ? '已连接' : '未连接';
+                    
+                    // 更新统计
+                    document.getElementById('statTotalRenders').textContent = browser.totalRenders || 0;
+                    document.getElementById('statFailedRenders').textContent = browser.failedRenders || 0;
+                    document.getElementById('statPageCount').textContent = browser.pageCount || 0;
+                    document.getElementById('statUptime').textContent = data.data.uptimeFormatted || '-';
+                    
+                    // 更新详细信息
+                    document.getElementById('infoConnected').textContent = browser.connected ? '✅ 已连接' : '❌ 未连接';
+                    document.getElementById('infoVersion').textContent = browser.version || '-';
+                    const pathEl = document.getElementById('infoPath');
+                    pathEl.textContent = browser.executablePath || '-';
+                    pathEl.title = browser.executablePath || '';
+                }
+            } catch (e) {
+                console.error('获取状态失败:', e);
+            }
+        }
+
+        // 浏览器控制
+        async function startBrowser() {
+            await browserAction('start', '启动');
+        }
+        async function stopBrowser() {
+            await browserAction('stop', '停止');
+        }
+        async function restartBrowser() {
+            await browserAction('restart', '重启');
+        }
+
+        async function browserAction(action, name) {
+            const resultEl = document.getElementById('operationResult');
+            resultEl.textContent = `正在${name}浏览器...`;
+            try {
+                const res = await fetch(API_BASE + '/browser/' + action, { method: 'POST' });
+                const data = await res.json();
+                resultEl.textContent = data.message || (data.code === 0 ? `${name}成功` : `${name}失败`);
+                setTimeout(fetchStatus, 500);
+            } catch (e) {
+                resultEl.textContent = `${name}失败: ` + e.message;
+            }
+        }
+
+        // 渲染测试
+        async function runTest() {
+            const type = document.getElementById('testType').value;
+            const content = document.getElementById('testContent').value;
+            const dataStr = document.getElementById('testData').value;
+            const resultEl = document.getElementById('testResult');
+            const timeEl = document.getElementById('testTime');
+            
+            resultEl.innerHTML = '<span class="animate-pulse">渲染中...</span>';
+            timeEl.textContent = '';
+            
+            try {
+                let data;
+                try {
+                    data = dataStr ? JSON.parse(dataStr) : undefined;
+                } catch (e) {
+                    throw new Error('模板数据 JSON 格式错误');
+                }
+                
+                const body = type === 'html' 
+                    ? { html: content, data, encoding: 'base64' }
+                    : { file: content, encoding: 'base64' };
+                
+                const endpoint = type === 'html' ? '/render' : '/screenshot';
+                const res = await fetch(API_BASE + endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const result = await res.json();
+                
+                if (result.code === 0) {
+                    resultEl.innerHTML = `<img src="data:image/png;base64,${result.data}" style="max-width:100%;border-radius:8px;" />`;
+                    timeEl.textContent = `渲染耗时: ${result.time}ms`;
+                } else {
+                    resultEl.innerHTML = `<span class="text-red-500">❌ ${result.message}</span>`;
+                }
+            } catch (e) {
+                resultEl.innerHTML = `<span class="text-red-500">❌ ${e.message}</span>`;
+            }
+        }
+
+        // 初始化
+        fetchStatus();
+        setInterval(fetchStatus, 5000);
+    </script>
+</body>
+</html>
