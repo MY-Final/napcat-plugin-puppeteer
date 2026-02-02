@@ -166,17 +166,12 @@ const { data } = await response.json();
 
 ### 认证方式
 
-支持两种认证方式：
-
-**1. HTTP Header 方式（推荐）**
+**HTTP Header 方式**
 ```
 Authorization: Bearer <your-auth-token>
 ```
 
-**2. Query 参数方式**
-```
-/puppeteer/screenshot?token=<your-auth-token>&url=...
-```
+> ⚠️ 出于安全考虑，不支持 Query 参数传递密钥（密钥会被记录在服务器日志、浏览器历史等位置）
 
 ### 获取认证密钥
 
