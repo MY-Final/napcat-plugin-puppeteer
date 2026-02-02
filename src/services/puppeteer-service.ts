@@ -37,7 +37,7 @@ const stats = {
 /**
  * 查找可用的浏览器路径
  */
-function findBrowserPath(configPath?: string): string | undefined {
+function findBrowserPath(configPath?: string, suppressLog = false): string | undefined {
     // 优先使用配置的路径
     if (configPath && fs.existsSync(configPath)) {
         return configPath;
@@ -47,7 +47,9 @@ function findBrowserPath(configPath?: string): string | undefined {
     const defaultPaths = getDefaultBrowserPaths();
     for (const browserPath of defaultPaths) {
         if (browserPath && fs.existsSync(browserPath)) {
-            pluginState.log('info', `自动检测到浏览器: ${browserPath}`);
+            if (!suppressLog) {
+                pluginState.log('info', `自动检测到浏览器: ${browserPath}`);
+            }
             return browserPath;
         }
     }
@@ -162,7 +164,7 @@ export async function getBrowserStatus(): Promise<BrowserStatus> {
         return {
             connected: false,
             pageCount: 0,
-            executablePath: findBrowserPath(config.executablePath),
+            executablePath: findBrowserPath(config.executablePath, true),
             totalRenders: stats.totalRenders,
             failedRenders: stats.failedRenders,
         };
@@ -176,7 +178,7 @@ export async function getBrowserStatus(): Promise<BrowserStatus> {
             connected: true,
             version,
             pageCount: pages.length,
-            executablePath: findBrowserPath(config.executablePath),
+            executablePath: findBrowserPath(config.executablePath, true),
             startTime: stats.startTime,
             totalRenders: stats.totalRenders,
             failedRenders: stats.failedRenders,
