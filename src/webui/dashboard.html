@@ -1228,19 +1228,21 @@
     <script>
         // === Core Logic ===
         const ROUTE_PREFIX = '/puppeteer';
-        const webuiToken = new URLSearchParams(window.location.search).get('webui_token') || '';
+
+        // 从 localStorage 获取 token（NapCat WebUI 鉴权方式）
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
 
         function authHeaders(h = {}) {
-            if (webuiToken) h['Authorization'] = 'Bearer ' + webuiToken;
+            const token = getToken();
+            if (token) h['Authorization'] = 'Bearer ' + token;
             return h;
         }
 
-        // 构建带 webui_token 的 URL
+        // 构建 URL（不再需要在 URL 中传递 token）
         function buildUrl(base, path) {
             const url = new URL(base + ROUTE_PREFIX + path, window.location.origin);
-            if (webuiToken) {
-                url.searchParams.set('webui_token', webuiToken);
-            }
             return url.toString();
         }
 
