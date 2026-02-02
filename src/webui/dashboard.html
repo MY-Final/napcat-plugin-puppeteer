@@ -1107,7 +1107,79 @@
                     <!-- Page: Settings -->
                     <div id="page-settings" class="page-content">
                         <div class="max-w-3xl mx-auto space-y-6">
-                            <!-- 调用示例 -->
+                            <!-- 浏览器配置 -->
+                            <div class="glass-card p-6">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div
+                                        class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-500">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                                            <path
+                                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-lg">浏览器配置</h3>
+                                        <p class="text-sm text-gray-500">Puppeteer 浏览器实例设置</p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label
+                                                class="text-xs font-semibold text-gray-500 uppercase mb-2 block">最大页面数</label>
+                                            <input id="settingsMaxPages" type="number" class="input-field"
+                                                placeholder="10" min="1" max="50" />
+                                            <p class="text-xs text-gray-400 mt-1">同时打开的最大页面数量</p>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">锁定超时
+                                                (ms)</label>
+                                            <input id="settingsLockTimeout" type="number" class="input-field"
+                                                placeholder="30000" min="1000" step="1000" />
+                                            <p class="text-xs text-gray-400 mt-1">页面锁定等待超时时间</p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">浏览器路径
+                                            (可选)</label>
+                                        <input id="settingsExecPath" type="text" class="input-field font-mono text-sm"
+                                            placeholder="留空使用内置 Chromium" />
+                                        <p class="text-xs text-gray-400 mt-1">自定义 Chrome/Chromium 可执行文件路径</p>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            class="text-xs font-semibold text-gray-500 uppercase mb-2 block">启动参数</label>
+                                        <input id="settingsBrowserArgs" type="text"
+                                            class="input-field font-mono text-sm"
+                                            placeholder="--no-sandbox,--disable-setuid-sandbox" />
+                                        <p class="text-xs text-gray-400 mt-1">浏览器启动参数，多个参数用逗号分隔</p>
+                                    </div>
+
+                                    <div
+                                        class="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#202124] rounded-lg">
+                                        <div>
+                                            <div class="font-medium">无头模式</div>
+                                            <div class="text-sm text-gray-500">隐藏浏览器窗口运行</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="settingsHeadless" class="sr-only peer" checked>
+                                            <div
+                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary">
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 渲染默认值 -->
                             <div class="glass-card p-6">
                                 <div class="flex items-center gap-3 mb-6">
                                     <div
@@ -1115,41 +1187,37 @@
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round">
-                                            <polyline points="16 18 22 12 16 6"></polyline>
-                                            <polyline points="8 6 2 12 8 18"></polyline>
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 class="font-bold text-lg">调用示例</h3>
-                                        <p class="text-sm text-gray-500">其他插件如何调用渲染 API</p>
+                                        <h3 class="font-bold text-lg">渲染默认值</h3>
+                                        <p class="text-sm text-gray-500">截图渲染的默认参数</p>
                                     </div>
                                 </div>
 
                                 <div class="space-y-4">
-                                    <div>
-                                        <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">POST
-                                            /puppeteer/render</label>
-                                        <pre class="text-xs">fetch('/api/Plugin/ext/插件名/puppeteer/render', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    html: '&lt;h1&gt;Hello {{name}}&lt;/h1&gt;',
-    data: { name: 'World' },
-    encoding: 'base64'
-  })
-})</pre>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">POST
-                                            /puppeteer/screenshot</label>
-                                        <pre class="text-xs">fetch('/api/Plugin/ext/插件名/puppeteer/screenshot', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    file: 'https://example.com',
-    encoding: 'base64'
-  })
-})</pre>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label
+                                                class="text-xs font-semibold text-gray-500 uppercase mb-2 block">默认宽度</label>
+                                            <input id="settingsDefaultWidth" type="number" class="input-field"
+                                                placeholder="1280" min="100" />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="text-xs font-semibold text-gray-500 uppercase mb-2 block">默认高度</label>
+                                            <input id="settingsDefaultHeight" type="number" class="input-field"
+                                                placeholder="800" min="100" />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="text-xs font-semibold text-gray-500 uppercase mb-2 block">设备缩放</label>
+                                            <input id="settingsDefaultScale" type="number" class="input-field"
+                                                placeholder="2" min="0.5" max="4" step="0.5" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1170,7 +1238,7 @@
                                     </div>
                                     <div>
                                         <h3 class="font-bold text-lg">其他设置</h3>
-                                        <p class="text-sm text-gray-500">调试模式等选项</p>
+                                        <p class="text-sm text-gray-500">调试与高级选项</p>
                                     </div>
                                 </div>
 
@@ -1179,11 +1247,24 @@
                                         class="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#202124] rounded-lg">
                                         <div>
                                             <div class="font-medium">调试模式</div>
-                                            <div class="text-sm text-gray-500">启用后输出详细日志</div>
+                                            <div class="text-sm text-gray-500">启用后输出详细日志到控制台</div>
                                         </div>
                                         <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" id="settingsDebug" class="sr-only peer"
-                                                onchange="saveSettings()">
+                                            <input type="checkbox" id="settingsDebug" class="sr-only peer">
+                                            <div
+                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary">
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <div
+                                        class="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#202124] rounded-lg">
+                                        <div>
+                                            <div class="font-medium">自动启动浏览器</div>
+                                            <div class="text-sm text-gray-500">插件加载时自动启动浏览器实例</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="settingsAutoStart" class="sr-only peer" checked>
                                             <div
                                                 class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary">
                                             </div>
@@ -1192,32 +1273,70 @@
                                 </div>
                             </div>
 
-                            <!-- 保存按钮 -->
-                            <div class="flex justify-end gap-3">
-                                <button onclick="loadSettings()"
+                            <!-- 操作按钮 -->
+                            <div class="flex justify-between items-center">
+                                <button onclick="resetSettings()"
                                     class="btn bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="23 4 23 10 17 10"></polyline>
-                                        <polyline points="1 20 1 14 7 14"></polyline>
-                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
-                                        </path>
+                                        <path d="M3 6h18"></path>
+                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
                                     </svg>
-                                    重新加载
+                                    恢复默认
                                 </button>
-                                <button onclick="saveSettings()" class="btn btn-primary">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z">
-                                        </path>
-                                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                        <polyline points="7 3 7 8 15 8"></polyline>
-                                    </svg>
-                                    保存配置
-                                </button>
+                                <div class="flex gap-3">
+                                    <button onclick="loadSettings()"
+                                        class="btn bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="23 4 23 10 17 10"></polyline>
+                                            <polyline points="1 20 1 14 7 14"></polyline>
+                                            <path
+                                                d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                            </path>
+                                        </svg>
+                                        重新加载
+                                    </button>
+                                    <button onclick="saveSettings()" class="btn btn-primary">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z">
+                                            </path>
+                                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                            <polyline points="7 3 7 8 15 8"></polyline>
+                                        </svg>
+                                        保存配置
+                                    </button>
+                                </div>
                             </div>
 
                             <div id="settingsResult" class="text-sm text-center h-6 rounded p-1 empty:hidden"></div>
+
+                            <!-- 配置说明 -->
+                            <div
+                                class="glass-card p-4 bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800">
+                                <div class="flex gap-3">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        class="text-amber-500 flex-shrink-0 mt-0.5">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                    <div class="text-sm text-amber-800 dark:text-amber-200">
+                                        <p class="font-medium mb-1">注意事项</p>
+                                        <ul
+                                            class="list-disc list-inside text-xs space-y-1 text-amber-700 dark:text-amber-300">
+                                            <li>修改浏览器配置后需要重启浏览器才能生效</li>
+                                            <li>最大页面数设置过高可能导致内存占用过大</li>
+                                            <li>自定义浏览器路径需确保路径正确且有执行权限</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1546,13 +1665,42 @@
 
         // === Settings Logic ===
 
+        // Default settings values
+        const defaultSettings = {
+            maxPages: 10,
+            lockTimeout: 30000,
+            executablePath: '',
+            browserArgs: '',
+            headless: true,
+            debug: false,
+            autoStart: true,
+            defaultWidth: 1280,
+            defaultHeight: 800,
+            defaultScale: 2
+        };
+
         // Load settings from server
         async function loadSettings() {
             try {
                 const data = await authFetch('/config');
                 if (data.code === 0) {
                     const config = data.data;
+
+                    // Browser settings
+                    document.getElementById('settingsMaxPages').value = config.maxPages || defaultSettings.maxPages;
+                    document.getElementById('settingsLockTimeout').value = config.lockTimeout || defaultSettings.lockTimeout;
+                    document.getElementById('settingsExecPath').value = config.browser?.executablePath || '';
+                    document.getElementById('settingsBrowserArgs').value = (config.browser?.args || []).join(',');
+                    document.getElementById('settingsHeadless').checked = config.browser?.headless !== false;
+
+                    // Render defaults
+                    document.getElementById('settingsDefaultWidth').value = config.defaultViewport?.width || defaultSettings.defaultWidth;
+                    document.getElementById('settingsDefaultHeight').value = config.defaultViewport?.height || defaultSettings.defaultHeight;
+                    document.getElementById('settingsDefaultScale').value = config.defaultViewport?.deviceScaleFactor || defaultSettings.defaultScale;
+
+                    // Other settings
                     document.getElementById('settingsDebug').checked = config.debug || false;
+                    document.getElementById('settingsAutoStart').checked = config.autoStart !== false;
                 }
             } catch (e) {
                 console.error('Failed to load settings:', e);
@@ -1563,11 +1711,32 @@
         // Save settings to server
         async function saveSettings() {
             try {
-                const debug = document.getElementById('settingsDebug').checked;
+                const config = {
+                    maxPages: parseInt(document.getElementById('settingsMaxPages').value) || defaultSettings.maxPages,
+                    lockTimeout: parseInt(document.getElementById('settingsLockTimeout').value) || defaultSettings.lockTimeout,
+                    browser: {
+                        headless: document.getElementById('settingsHeadless').checked,
+                        executablePath: document.getElementById('settingsExecPath').value || undefined,
+                        args: document.getElementById('settingsBrowserArgs').value
+                            ? document.getElementById('settingsBrowserArgs').value.split(',').map(s => s.trim()).filter(Boolean)
+                            : undefined
+                    },
+                    defaultViewport: {
+                        width: parseInt(document.getElementById('settingsDefaultWidth').value) || defaultSettings.defaultWidth,
+                        height: parseInt(document.getElementById('settingsDefaultHeight').value) || defaultSettings.defaultHeight,
+                        deviceScaleFactor: parseFloat(document.getElementById('settingsDefaultScale').value) || defaultSettings.defaultScale
+                    },
+                    debug: document.getElementById('settingsDebug').checked,
+                    autoStart: document.getElementById('settingsAutoStart').checked
+                };
+
+                // Clean up undefined values in browser config
+                if (!config.browser.executablePath) delete config.browser.executablePath;
+                if (!config.browser.args || config.browser.args.length === 0) delete config.browser.args;
 
                 await authFetch('/config', {
                     method: 'POST',
-                    body: JSON.stringify({ debug })
+                    body: JSON.stringify(config)
                 });
 
                 showSettingsResult('配置已保存', true);
@@ -1575,6 +1744,24 @@
                 console.error('Failed to save settings:', e);
                 showSettingsResult('保存失败: ' + e.message, false);
             }
+        }
+
+        // Reset settings to default
+        async function resetSettings() {
+            if (!confirm('确定要恢复默认配置吗？此操作不可撤销。')) return;
+
+            document.getElementById('settingsMaxPages').value = defaultSettings.maxPages;
+            document.getElementById('settingsLockTimeout').value = defaultSettings.lockTimeout;
+            document.getElementById('settingsExecPath').value = '';
+            document.getElementById('settingsBrowserArgs').value = '';
+            document.getElementById('settingsHeadless').checked = defaultSettings.headless;
+            document.getElementById('settingsDefaultWidth').value = defaultSettings.defaultWidth;
+            document.getElementById('settingsDefaultHeight').value = defaultSettings.defaultHeight;
+            document.getElementById('settingsDefaultScale').value = defaultSettings.defaultScale;
+            document.getElementById('settingsDebug').checked = defaultSettings.debug;
+            document.getElementById('settingsAutoStart').checked = defaultSettings.autoStart;
+
+            showSettingsResult('已恢复默认值，点击保存生效', true);
         }
 
         // Show settings operation result

@@ -83,12 +83,16 @@ function getBrowserArgs(config: BrowserConfig): string[] {
  * 初始化浏览器
  */
 export async function initBrowser(): Promise<boolean> {
+    pluginState.logDebug('initBrowser() 被调用');
+
     if (browser) {
         pluginState.log('warn', '浏览器已初始化，跳过');
         return true;
     }
 
     const config = pluginState.config.browser;
+    pluginState.logDebug('浏览器配置:', JSON.stringify(config, null, 2));
+
     const executablePath = findBrowserPath(config.executablePath);
 
     if (!executablePath) {
@@ -120,9 +124,11 @@ export async function initBrowser(): Promise<boolean> {
 
         stats.startTime = Date.now();
         pluginState.log('info', '浏览器启动成功');
+        pluginState.logDebug('浏览器版本:', await browser.version());
         return true;
     } catch (error) {
         pluginState.log('error', '启动浏览器失败:', error);
+        pluginState.logDebug('启动失败详情:', error);
         browser = null;
         return false;
     }
@@ -132,6 +138,8 @@ export async function initBrowser(): Promise<boolean> {
  * 关闭浏览器
  */
 export async function closeBrowser(): Promise<void> {
+    pluginState.logDebug('closeBrowser() 被调用');
+
     if (browser) {
         try {
             await browser.close();
@@ -143,6 +151,8 @@ export async function closeBrowser(): Promise<void> {
             currentPageCount = 0;
             pageQueue = [];
         }
+    } else {
+        pluginState.logDebug('浏览器未运行，无需关闭');
     }
 }
 
@@ -150,6 +160,7 @@ export async function closeBrowser(): Promise<void> {
  * 重启浏览器
  */
 export async function restartBrowser(): Promise<boolean> {
+    pluginState.logDebug('restartBrowser() 被调用');
     await closeBrowser();
     return initBrowser();
 }
@@ -158,9 +169,12 @@ export async function restartBrowser(): Promise<boolean> {
  * 获取浏览器状态
  */
 export async function getBrowserStatus(): Promise<BrowserStatus> {
+    pluginState.logDebug('getBrowserStatus() 被调用');
+
     const config = pluginState.config.browser;
 
     if (!browser) {
+        pluginState.logDebug('浏览器未连接');
         return {
             connected: false,
             pageCount: 0,
@@ -303,26 +317,41 @@ export async function screenshot<
     const startTime = Date.now();
     stats.totalRenders++;
 
+    pluginState.logDebug('screenshot() 被调用, 参数:', JSON.stringify({
+        file_type: options.file_type,
+        file: options.file?.substring(0, 100) + (options.file?.length > 100 ? '...' : ''),
+        encoding: options.encoding,
+        selector: options.selector,
+        fullPage: options.fullPage,
+        multiPage: options.multiPage,
+        setViewport: options.setViewport,
+    }, null, 2));
+
     let page: Page | null = null;
 
     try {
         // 获取页面
+        pluginState.logDebug('正在获取页面...');
         page = await acquirePage();
+        pluginState.logDebug('页面获取成功, 当前页面数:', currentPageCount);
 
         const config = pluginState.config.browser;
         const timeout = options.pageGotoParams?.timeout || config.timeout || 30000;
 
         // 设置视口
         if (options.setViewport) {
-            await page.setViewport({
+            const viewport = {
                 width: options.setViewport.width || config.defaultViewportWidth || 1280,
                 height: options.setViewport.height || config.defaultViewportHeight || 800,
                 deviceScaleFactor: options.setViewport.deviceScaleFactor || config.deviceScaleFactor || 2,
-            });
+            };
+            pluginState.logDebug('设置视口:', viewport);
+            await page.setViewport(viewport);
         }
 
         // 设置额外的 HTTP 头
         if (options.headers) {
+            pluginState.logDebug('设置 HTTP 头:', options.headers);
             await page.setExtraHTTPHeaders(options.headers);
         }
 
@@ -334,14 +363,17 @@ export async function screenshot<
                 !options.file.startsWith('https://') &&
                 !options.file.startsWith('file://'))) {
             // HTML 字符串，需要先渲染模板
+            pluginState.logDebug('渲染 HTML 字符串, 长度:', options.file.length);
             let html = options.file;
             if (options.data) {
+                pluginState.logDebug('应用模板数据:', Object.keys(options.data));
                 html = renderTemplate(html, options.data);
             }
             await page.setContent(html, {
                 waitUntil: options.pageGotoParams?.waitUntil || 'networkidle0',
                 timeout,
             });
+            pluginState.logDebug('HTML 内容已设置');
         } else {
             // URL 或 file:// 路径
             targetUrl = options.file;
@@ -349,23 +381,28 @@ export async function screenshot<
             // 处理 file:// 协议，读取文件并渲染模板
             if (targetUrl.startsWith('file://')) {
                 const filePath = targetUrl.replace('file://', '');
+                pluginState.logDebug('读取本地文件:', filePath);
                 if (fs.existsSync(filePath)) {
                     let html = fs.readFileSync(filePath, 'utf-8');
                     if (options.data) {
+                        pluginState.logDebug('应用模板数据:', Object.keys(options.data));
                         html = renderTemplate(html, options.data);
                     }
                     await page.setContent(html, {
                         waitUntil: options.pageGotoParams?.waitUntil || 'networkidle0',
                         timeout,
                     });
+                    pluginState.logDebug('本地文件内容已设置');
                 } else {
                     throw new Error(`文件不存在: ${filePath}`);
                 }
             } else {
+                pluginState.logDebug('导航到 URL:', targetUrl);
                 await page.goto(targetUrl, {
                     waitUntil: options.pageGotoParams?.waitUntil || 'networkidle0',
                     timeout,
                 });
+                pluginState.logDebug('页面导航完成');
             }
         }
 
@@ -392,10 +429,12 @@ export async function screenshot<
 
         // 全页面截图
         if (options.fullPage) {
+            pluginState.logDebug('执行全页面截图');
             screenshotOptions.fullPage = true;
             screenshotOptions.captureBeyondViewport = true;
 
             const result = await page.screenshot(screenshotOptions);
+            pluginState.logDebug('全页面截图完成');
 
             return {
                 status: true,
@@ -405,8 +444,10 @@ export async function screenshot<
         }
 
         // 获取目标元素
+        pluginState.logDebug('查找目标元素, selector:', options.selector || '默认');
         const element = await findTargetElement(page, options.selector);
         const box = await element.boundingBox();
+        pluginState.logDebug('元素边界:', box);
 
         // 更新视口以适应元素
         if (box) {
@@ -424,6 +465,7 @@ export async function screenshot<
                 : (box.height >= 2000 ? 2000 : box.height);
 
             const totalPages = Math.ceil(box.height / pageHeight);
+            pluginState.logDebug(`执行分页截图, 每页高度: ${pageHeight}, 总页数: ${totalPages}`);
             const results: any[] = [];
 
             for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
@@ -446,18 +488,22 @@ export async function screenshot<
         }
 
         // 单页截图
+        pluginState.logDebug('执行单页截图');
         const result = await element.screenshot(screenshotOptions);
+        const elapsed = Date.now() - startTime;
+        pluginState.logDebug(`截图完成, 耗时: ${elapsed}ms`);
 
         return {
             status: true,
             data: result as any,
-            time: Date.now() - startTime,
+            time: elapsed,
         };
 
     } catch (error) {
         stats.failedRenders++;
         const message = error instanceof Error ? error.message : String(error);
         pluginState.log('error', '截图失败:', message);
+        pluginState.logDebug('截图失败详情:', error);
 
         return {
             status: false,
@@ -467,6 +513,7 @@ export async function screenshot<
         };
     } finally {
         if (page) {
+            pluginState.logDebug('释放页面');
             await releasePage(page);
         }
     }
@@ -479,6 +526,7 @@ export async function renderHtml(
     html: string,
     options?: Partial<ScreenshotOptions>
 ): Promise<RenderResult<'base64', false>> {
+    pluginState.logDebug('renderHtml() 被调用, HTML 长度:', html.length);
     return screenshot({
         file: html,
         file_type: 'htmlString',
@@ -494,6 +542,7 @@ export async function screenshotUrl(
     url: string,
     options?: Partial<ScreenshotOptions>
 ): Promise<RenderResult<'base64', false>> {
+    pluginState.logDebug('screenshotUrl() 被调用, URL:', url);
     return screenshot({
         file: url,
         file_type: 'auto',

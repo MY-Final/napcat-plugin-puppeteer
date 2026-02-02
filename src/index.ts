@@ -118,6 +118,7 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
 
                 // 插件状态
                 base.get(wrapPath('/status'), async (_req: any, res: any) => {
+                    pluginState.logDebug('API 请求: GET /status');
                     try {
                         const browserStatus = await getBrowserStatus();
                         res.json({
@@ -137,6 +138,7 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
 
                 // 浏览器状态
                 base.get(wrapPath('/browser/status'), async (_req: any, res: any) => {
+                    pluginState.logDebug('API 请求: GET /browser/status');
                     try {
                         const status = await getBrowserStatus();
                         res.json({ code: 0, data: status });
@@ -149,13 +151,16 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
 
                 // 获取配置
                 base.get(wrapPath('/config'), (_req: any, res: any) => {
+                    pluginState.logDebug('API 请求: GET /config');
                     res.json({ code: 0, data: pluginState.getConfig() });
                 });
 
                 // 保存配置
                 base.post && base.post(wrapPath('/config'), async (req: any, res: any) => {
+                    pluginState.logDebug('API 请求: POST /config');
                     try {
                         const body = await parseRequestBody(req);
+                        pluginState.logDebug('保存配置内容:', JSON.stringify(body, null, 2));
                         pluginState.setConfig(ctx, body);
                         pluginState.log('info', '配置已保存');
                         res.json({ code: 0, message: 'ok' });
@@ -169,6 +174,7 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
 
                 // 启动浏览器
                 base.post && base.post(wrapPath('/browser/start'), async (req: any, res: any) => {
+                    pluginState.logDebug('API 请求: POST /browser/start');
                     if (!checkAuth(req, res)) return;
                     try {
                         const success = await initBrowser();
@@ -184,6 +190,7 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
 
                 // 关闭浏览器
                 base.post && base.post(wrapPath('/browser/stop'), async (req: any, res: any) => {
+                    pluginState.logDebug('API 请求: POST /browser/stop');
                     if (!checkAuth(req, res)) return;
                     try {
                         await closeBrowser();
@@ -195,6 +202,7 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
 
                 // 重启浏览器
                 base.post && base.post(wrapPath('/browser/restart'), async (req: any, res: any) => {
+                    pluginState.logDebug('API 请求: POST /browser/restart');
                     if (!checkAuth(req, res)) return;
                     try {
                         const success = await restartBrowser();
@@ -212,10 +220,11 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
 
                 // 截图接口 (GET) - 简单 URL 截图
                 base.get(wrapPath('/screenshot'), async (req: any, res: any) => {
+                    const url = req.query?.url as string;
+                    pluginState.logDebug('API 请求: GET /screenshot', { url, query: req.query });
                     if (!checkAuth(req, res)) return;
 
                     try {
-                        const url = req.query?.url as string;
                         if (!url) {
                             return res.status(400).json({ code: -1, message: '缺少 url 参数' });
                         }
@@ -257,10 +266,18 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
 
                 // 截图接口 (POST) - 完整参数
                 base.post && base.post(wrapPath('/screenshot'), async (req: any, res: any) => {
+                    pluginState.logDebug('API 请求: POST /screenshot');
                     if (!checkAuth(req, res)) return;
 
                     try {
                         const body = await parseRequestBody(req);
+                        pluginState.logDebug('截图参数:', JSON.stringify({
+                            file_type: body.file_type,
+                            file_length: body.file?.length,
+                            selector: body.selector,
+                            encoding: body.encoding,
+                            fullPage: body.fullPage,
+                        }, null, 2));
 
                         if (!body.file) {
                             return res.status(400).json({ code: -1, message: '缺少 file 参数' });
@@ -300,10 +317,18 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
 
                 // 渲染 HTML 接口 (POST)
                 base.post && base.post(wrapPath('/render'), async (req: any, res: any) => {
+                    pluginState.logDebug('API 请求: POST /render');
                     if (!checkAuth(req, res)) return;
 
                     try {
                         const body = await parseRequestBody(req);
+                        pluginState.logDebug('渲染参数:', JSON.stringify({
+                            has_html: !!body.html,
+                            html_length: body.html?.length,
+                            file: body.file,
+                            selector: body.selector,
+                            data_keys: body.data ? Object.keys(body.data) : [],
+                        }, null, 2));
 
                         if (!body.html && !body.file) {
                             return res.status(400).json({ code: -1, message: '缺少 html 或 file 参数' });
