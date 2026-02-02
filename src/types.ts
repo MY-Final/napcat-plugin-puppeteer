@@ -168,9 +168,9 @@ export interface RenderResult<T extends Encoding = 'base64', M extends MultiPage
     /** 是否成功 */
     status: boolean;
     /** 截图数据或错误信息 */
-    data: M extends false 
-        ? (T extends 'base64' ? string : Uint8Array)
-        : Array<T extends 'base64' ? string : Uint8Array>;
+    data: M extends false
+    ? (T extends 'base64' ? string : Uint8Array)
+    : Array<T extends 'base64' ? string : Uint8Array>;
     /** 错误信息（失败时） */
     message?: string;
     /** 渲染耗时（毫秒） */
@@ -242,9 +242,6 @@ export interface PluginConfig {
 
     /** 浏览器配置 */
     browser: BrowserConfig;
-
-    /** API 认证 Token（可选） */
-    authToken?: string;
 
     /** 是否启用调试模式 */
     debug?: boolean;

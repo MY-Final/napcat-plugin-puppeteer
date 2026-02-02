@@ -3,18 +3,8 @@
  * 定义默认配置和 WebUI 配置 Schema
  */
 
-import crypto from 'crypto';
 import type { NapCatPluginContext } from 'napcat-types/napcat-onebot/network/plugin-manger';
 import type { PluginConfig, BrowserConfig } from './types';
-
-/**
- * 生成安全的随机认证密钥
- * @param length 密钥长度（字节数），默认 32 字节生成 64 位十六进制字符串
- * @returns 随机生成的十六进制密钥
- */
-export function generateAuthToken(length: number = 32): string {
-    return crypto.randomBytes(length).toString('hex');
-}
 
 /** 默认浏览器配置 */
 export const DEFAULT_BROWSER_CONFIG: BrowserConfig = {
@@ -42,7 +32,6 @@ export const DEFAULT_BROWSER_CONFIG: BrowserConfig = {
 export const DEFAULT_CONFIG: PluginConfig = {
     enabled: true,
     browser: { ...DEFAULT_BROWSER_CONFIG },
-    authToken: generateAuthToken(),
     debug: false,
 };
 
@@ -75,8 +64,6 @@ export function initConfigUI(ctx: NapCatPluginContext) {
         ctx.NapCatConfig.number('browser.defaultViewportHeight', '默认视口高度', DEFAULT_CONFIG.browser.defaultViewportHeight ?? 800, '截图默认高度', true),
         // 设备像素比
         ctx.NapCatConfig.number('browser.deviceScaleFactor', '设备像素比', DEFAULT_CONFIG.browser.deviceScaleFactor ?? 2, '截图清晰度，推荐 1-3', true),
-        // API Token
-        ctx.NapCatConfig.string('authToken', 'API 认证密钥', '', '必填，其他插件调用 API 时需要传入此密钥进行认证。首次启动会自动生成安全密钥。', true),
         // 调试模式
         ctx.NapCatConfig.boolean('debug', '调试模式', DEFAULT_CONFIG.debug ?? false, '输出详细日志', true),
     );

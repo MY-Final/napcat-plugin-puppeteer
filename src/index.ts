@@ -54,40 +54,14 @@ async function parseRequestBody(req: any): Promise<any> {
 }
 
 /**
- * 认证中间件
- * 所有需要认证的 API 都必须通过此中间件验证
- * 支持三种认证方式：
- * 1. Header: Authorization: Bearer <token>
- * 2. Query: ?token=<token>
- * 3. WebUI 内部请求（带 webui_token）自动放行
+ * 认证检查（已禁用）
+ * 插件间通信无需认证，直接放行所有请求
  */
-function checkAuth(req: any, res: any): boolean {
-    // WebUI 内部请求（已通过 NapCat WebUI 认证）自动放行
-    const webuiToken = req.query?.webui_token;
-    if (webuiToken) {
-        return true;
-    }
+function checkAuth(_req: any, _res: any): boolean {
+    return true;
+}
 
-    const token = pluginState.config.authToken;
-
-    // 密钥未配置时拒绝访问
-    if (!token) {
-        pluginState.log('error', '认证密钥未配置，拒绝 API 访问');
-        res.status(500).json({ code: -1, message: '服务端认证密钥未配置' });
-        return false;
-    }
-
-    const authHeader = req.headers?.authorization;
-    const queryToken = req.query?.token;
-
-    if (authHeader === `Bearer ${token}` || queryToken === token) {
-        return true;
-    }
-
-    pluginState.logDebug('认证失败，提供的 token 不匹配');
-    res.status(401).json({ code: -1, message: '认证失败，请提供有效的认证密钥' });
-    return false;
-}/**
+/**
  * 插件初始化函数
  * 负责加载配置、初始化浏览器、注册 WebUI 路由
  */

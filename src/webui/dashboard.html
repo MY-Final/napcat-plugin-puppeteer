@@ -1107,89 +1107,6 @@
                     <!-- Page: Settings -->
                     <div id="page-settings" class="page-content">
                         <div class="max-w-3xl mx-auto space-y-6">
-                            <!-- 认证配置 -->
-                            <div class="glass-card p-6">
-                                <div class="flex items-center gap-3 mb-6">
-                                    <div
-                                        class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center text-red-500">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 class="font-bold text-lg">API 认证配置</h3>
-                                        <p class="text-sm text-gray-500">其他插件调用 API 时需要提供此密钥</p>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-4">
-                                    <div>
-                                        <label
-                                            class="text-xs font-semibold text-gray-500 uppercase mb-2 block">认证密钥</label>
-                                        <div class="flex gap-2">
-                                            <div class="relative flex-1">
-                                                <input id="settingsAuthToken" type="password"
-                                                    class="input-field font-mono text-sm pr-10" placeholder="认证密钥" />
-                                                <button onclick="toggleTokenVisibility()"
-                                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                                    <svg id="tokenEyeIcon" width="18" height="18" viewBox="0 0 24 24"
-                                                        fill="none" stroke="currentColor" stroke-width="2"
-                                                        stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                                        <circle cx="12" cy="12" r="3"></circle>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                            <button onclick="copyToken()"
-                                                class="btn bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
-                                                title="复制密钥">
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                                    stroke-linejoin="round">
-                                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
-                                                    </path>
-                                                </svg>
-                                            </button>
-                                            <button onclick="generateNewToken()"
-                                                class="btn bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 text-blue-600 dark:text-blue-400"
-                                                title="生成新密钥">
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                                    stroke-linejoin="round">
-                                                    <polyline points="23 4 23 10 17 10"></polyline>
-                                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        <p class="text-xs text-gray-400 mt-2">💡 首次启动会自动生成安全密钥。点击刷新按钮可生成新密钥。</p>
-                                    </div>
-
-                                    <div
-                                        class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                                        <div class="flex gap-2">
-                                            <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24"
-                                                fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <path
-                                                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
-                                                </path>
-                                                <line x1="12" y1="9" x2="12" y2="13"></line>
-                                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                                            </svg>
-                                            <div class="text-sm text-amber-800 dark:text-amber-200">
-                                                <p class="font-medium">安全提示</p>
-                                                <p class="mt-1 text-amber-700 dark:text-amber-300">
-                                                    请妥善保管认证密钥，不要泄露给不信任的第三方。修改密钥后，所有使用旧密钥的插件都需要更新。</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                             <!-- 调用示例 -->
                             <div class="glass-card p-6">
                                 <div class="flex items-center gap-3 mb-6">
@@ -1204,27 +1121,34 @@
                                     </div>
                                     <div>
                                         <h3 class="font-bold text-lg">调用示例</h3>
-                                        <p class="text-sm text-gray-500">其他插件如何使用认证密钥调用 API</p>
+                                        <p class="text-sm text-gray-500">其他插件如何调用渲染 API</p>
                                     </div>
                                 </div>
 
                                 <div class="space-y-4">
                                     <div>
-                                        <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">HTTP
-                                            Header 方式</label>
-                                        <pre class="text-xs">Authorization: Bearer &lt;your-auth-token&gt;</pre>
-                                        <p class="text-xs text-gray-400 mt-2">⚠️ 出于安全考虑，不支持 Query 参数传递密钥</p>
-                                    </div>
-                                    <div>
-                                        <label
-                                            class="text-xs font-semibold text-gray-500 uppercase mb-2 block">完整示例</label>
+                                        <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">POST
+                                            /puppeteer/render</label>
                                         <pre class="text-xs">fetch('/api/Plugin/ext/插件名/puppeteer/render', {
   method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer &lt;your-auth-token&gt;'
-  },
-  body: JSON.stringify({ html: '&lt;h1&gt;Hello&lt;/h1&gt;' })
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    html: '&lt;h1&gt;Hello {{name}}&lt;/h1&gt;',
+    data: { name: 'World' },
+    encoding: 'base64'
+  })
+})</pre>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">POST
+                                            /puppeteer/screenshot</label>
+                                        <pre class="text-xs">fetch('/api/Plugin/ext/插件名/puppeteer/screenshot', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    file: 'https://example.com',
+    encoding: 'base64'
+  })
 })</pre>
                                     </div>
                                 </div>
@@ -1626,7 +1550,6 @@
                 const data = await authFetch('/config');
                 if (data.code === 0) {
                     const config = data.data;
-                    document.getElementById('settingsAuthToken').value = config.authToken || '';
                     document.getElementById('settingsDebug').checked = config.debug || false;
                 }
             } catch (e) {
@@ -1637,19 +1560,12 @@
 
         // Save settings to server
         async function saveSettings() {
-            const resultEl = document.getElementById('settingsResult');
             try {
-                const authToken = document.getElementById('settingsAuthToken').value.trim();
                 const debug = document.getElementById('settingsDebug').checked;
-
-                if (!authToken) {
-                    showSettingsResult('认证密钥不能为空', false);
-                    return;
-                }
 
                 await authFetch('/config', {
                     method: 'POST',
-                    body: JSON.stringify({ authToken, debug })
+                    body: JSON.stringify({ debug })
                 });
 
                 showSettingsResult('配置已保存', true);
@@ -1671,54 +1587,6 @@
                 resultEl.textContent = '';
                 resultEl.className = 'text-sm text-center h-6 rounded p-1 empty:hidden';
             }, 3000);
-        }
-
-        // Toggle token visibility
-        function toggleTokenVisibility() {
-            const input = document.getElementById('settingsAuthToken');
-            const icon = document.getElementById('tokenEyeIcon');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
-            } else {
-                input.type = 'password';
-                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
-            }
-        }
-
-        // Copy token to clipboard
-        async function copyToken() {
-            const token = document.getElementById('settingsAuthToken').value;
-            if (!token) {
-                showSettingsResult('没有可复制的密钥', false);
-                return;
-            }
-
-            try {
-                await navigator.clipboard.writeText(token);
-                showSettingsResult('密钥已复制到剪贴板', true);
-            } catch (e) {
-                // Fallback for older browsers
-                const input = document.getElementById('settingsAuthToken');
-                const originalType = input.type;
-                input.type = 'text';
-                input.select();
-                document.execCommand('copy');
-                input.type = originalType;
-                showSettingsResult('密钥已复制到剪贴板', true);
-            }
-        }
-
-        // Generate new random token
-        function generateNewToken() {
-            // Generate 64 character hex string (32 bytes)
-            const array = new Uint8Array(32);
-            crypto.getRandomValues(array);
-            const newToken = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-
-            document.getElementById('settingsAuthToken').value = newToken;
-            showSettingsResult('已生成新密钥，请点击保存按钮保存', true);
         }
     </script>
 </body>
