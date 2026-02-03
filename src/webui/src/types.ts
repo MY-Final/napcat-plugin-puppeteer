@@ -38,6 +38,15 @@ export interface PluginConfig {
     }
 }
 
+/** 已安装的浏览器信息 */
+export interface InstalledBrowser {
+    type: 'chrome' | 'chromium' | 'edge' | 'brave'
+    executablePath: string
+    version?: string
+    source: string
+    channel: string
+}
+
 export interface ChromeStatus {
     platform: string
     arch: string
@@ -48,6 +57,12 @@ export interface ChromeStatus {
     executablePath?: string
     isInstalling: boolean
     progress?: ChromeProgress
+    /** 是否支持自动安装 Chrome */
+    canInstall: boolean
+    /** 不支持安装的原因 */
+    cannotInstallReason?: string
+    /** 系统中已安装的浏览器列表 */
+    installedBrowsers?: InstalledBrowser[]
 }
 
 export interface ChromeProgress {

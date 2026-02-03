@@ -36,6 +36,9 @@ import {
     installLinuxDependencies,
     detectLinuxDistro,
     DEFAULT_CHROME_VERSION,
+    getCurrentPlatform,
+    findInstalledBrowsers,
+    Platform,
 } from './services/chrome-installer';
 import type { ScreenshotOptions } from './types';
 
@@ -369,6 +372,30 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
                     const installPath = getDefaultInstallPath();
                     const info = await getInstalledChromeInfo(installPath);
                     const distro = await detectLinuxDistro();
+                    const platform = getCurrentPlatform();
+
+                    // 查找系统已安装的浏览器
+                    const installedBrowsers = findInstalledBrowsers();
+
+                    // 判断是否支持自动安装
+                    let canInstall = true;
+                    let cannotInstallReason = '';
+
+                    // Chrome for Testing 支持的平台
+                    const supportedPlatforms: string[] = [
+                        Platform.WIN32, Platform.WIN64,
+                        Platform.MAC, Platform.MAC_ARM,
+                        Platform.LINUX
+                    ];
+
+                    if (!supportedPlatforms.includes(platform)) {
+                        canInstall = false;
+                        if (platform === Platform.LINUX_ARM) {
+                            cannotInstallReason = 'Chrome for Testing 暂不支持 Linux ARM 架构';
+                        } else {
+                            cannotInstallReason = `不支持的平台: ${platform}`;
+                        }
+                    }
 
                     res.json({
                         code: 0,
@@ -383,6 +410,15 @@ const plugin_init = async (ctx: NapCatPluginContext) => {
                             arch: process.arch,
                             linuxDistro: distro,
                             defaultVersion: DEFAULT_CHROME_VERSION,
+                            canInstall,
+                            cannotInstallReason: cannotInstallReason || undefined,
+                            installedBrowsers: installedBrowsers.map(b => ({
+                                type: b.type,
+                                executablePath: b.executablePath,
+                                version: b.version,
+                                source: b.source,
+                                channel: b.channel,
+                            })),
                         }
                     });
                 } catch (e) {
