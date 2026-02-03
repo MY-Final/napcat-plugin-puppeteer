@@ -63,9 +63,10 @@ jobs:
           mkdir -p release
           
           # 复制需要的文件到临时目录
+          # copy 脚本已经将 webui 和处理过的 package.json 放入 dist
           cp dist/index.mjs release/
-          cp package.json release/
-          cp -r src/webui release/
+          cp dist/package.json release/
+          cp -r dist/webui release/
           
           # 进入临时目录并压缩
           cd release
