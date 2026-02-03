@@ -32,6 +32,7 @@ let pageQueue: Array<() => void> = [];
 
 /** 重连相关状态 */
 let isReconnecting = false;
+let isClosing = false; // 标记是否正在主动关闭
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE = 1000; // 基础重连延迟 1 秒
@@ -140,6 +141,12 @@ function setupDisconnectHandler(): void {
     const isRemoteMode = !!config.browserWSEndpoint;
 
     browser.on('disconnected', () => {
+        // 如果是主动关闭，不触发重连
+        if (isClosing) {
+            pluginState.logDebug('浏览器已主动关闭，跳过重连');
+            return;
+        }
+
         if (isRemoteMode) {
             pluginState.log('warn', '远程浏览器连接已断开，准备自动重连...');
         } else {
@@ -299,7 +306,10 @@ export async function initBrowser(): Promise<boolean> {
 export async function closeBrowser(): Promise<void> {
     pluginState.logDebug('closeBrowser() 被调用');
 
-    // 清理重连状态，防止关闭后自动重连
+    // 标记正在主动关闭，防止 disconnected 事件触发重连
+    isClosing = true;
+
+    // 清理重连状态
     clearReconnectState();
 
     if (browser) {
@@ -313,9 +323,11 @@ export async function closeBrowser(): Promise<void> {
             keepAlivePage = null;
             currentPageCount = 0;
             pageQueue = [];
+            isClosing = false;
         }
     } else {
         pluginState.logDebug('浏览器未运行，无需关闭');
+        isClosing = false;
     }
 }
 
