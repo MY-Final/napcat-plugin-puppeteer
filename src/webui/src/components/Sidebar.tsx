@@ -4,7 +4,6 @@ import {
     Zap,
     FileText,
     Settings,
-    Chrome,
     Github
 } from 'lucide-react'
 
@@ -14,11 +13,10 @@ interface SidebarProps {
 }
 
 const menuItems: { id: PageId; label: string; icon: React.ReactNode }[] = [
-    { id: 'status', label: '运行状态', icon: <LayoutGrid size={20} /> },
-    { id: 'test', label: '渲染测试', icon: <Zap size={20} /> },
-    { id: 'api', label: 'API 文档', icon: <FileText size={20} /> },
-    { id: 'settings', label: '设置', icon: <Settings size={20} /> },
-    { id: 'chrome', label: 'Chrome 安装', icon: <Chrome size={20} /> },
+    { id: 'status', label: '仪表盘', icon: <LayoutGrid size={20} /> },
+    { id: 'test', label: '截图调试', icon: <Zap size={20} /> },
+    { id: 'settings', label: '系统设置', icon: <Settings size={20} /> },
+    { id: 'api', label: '接口文档', icon: <FileText size={20} /> },
 ]
 
 export default function Sidebar({ currentPage, onPageChange }: SidebarProps) {

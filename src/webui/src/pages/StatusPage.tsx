@@ -1,4 +1,4 @@
-import { Play, RotateCcw, Square, Shield } from 'lucide-react'
+import { Play, RotateCcw, Square, Shield, CheckCircle, XCircle, Globe, Laptop } from 'lucide-react'
 import type { PluginStatus } from '../types'
 import { authFetch } from '../utils/api'
 import { showToast } from '../hooks/useToast'
@@ -60,19 +60,24 @@ export default function StatusPage({ status, onRefresh }: StatusPageProps) {
                     </div>
 
                     <div className="flex flex-wrap gap-3">
-                        <button onClick={() => browserAction('start', '启动')} className="btn btn-primary">
+                        <button
+                            onClick={() => browserAction('start', '启动')}
+                            className="btn bg-gray-100 dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700"
+                        >
                             <Play size={18} />
                             启动
                         </button>
                         <button
                             onClick={() => browserAction('restart', '重启')}
-                            className="btn"
-                            style={{ background: '#f59e0b', color: 'white' }}
+                            className="btn bg-gray-100 dark:bg-gray-800 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-gray-700 dark:text-gray-200 hover:text-amber-600 dark:hover:text-amber-400 border border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-700"
                         >
                             <RotateCcw size={18} />
                             重启
                         </button>
-                        <button onClick={() => browserAction('stop', '停止')} className="btn btn-danger">
+                        <button
+                            onClick={() => browserAction('stop', '停止')}
+                            className="btn bg-gray-100 dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 border border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-700"
+                        >
                             <Square size={18} />
                             停止
                         </button>
@@ -86,16 +91,19 @@ export default function StatusPage({ status, onRefresh }: StatusPageProps) {
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
                     <div className="flex justify-between p-3 bg-gray-50 dark:bg-[#202124] rounded-lg">
                         <span className="text-gray-500">连接状态</span>
-                        <span className={`font-medium ${browser?.connected ? 'text-green-500' : 'text-red-500'}`}>
-                            {browser?.connected ? '✅ 已连接' : '❌ 未连接'}
+                        <span className={`font-medium flex items-center gap-1 ${browser?.connected ? 'text-green-500' : 'text-red-500'}`}>
+                            {browser?.connected ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                            {browser?.connected ? '已连接' : '未连接'}
                         </span>
                     </div>
                     <div className="flex justify-between p-3 bg-gray-50 dark:bg-[#202124] rounded-lg">
                         <span className="text-gray-500">连接模式</span>
-                        <span className={`font-medium ${browser?.mode === 'remote' ? 'text-blue-500' : 'text-gray-500'}`}>
-                            {browser?.mode === 'remote' ? '🌐 远程连接' : '💻 本地启动'}
+                        <span className={`font-medium flex items-center gap-1 ${browser?.mode === 'remote' ? 'text-blue-500' : 'text-gray-500'}`}>
+                            {browser?.mode === 'remote' ? <Globe size={14} /> : <Laptop size={14} />}
+                            {browser?.mode === 'remote' ? '远程连接' : '本地启动'}
                         </span>
                     </div>
+
                     <div className="flex justify-between p-3 bg-gray-50 dark:bg-[#202124] rounded-lg">
                         <span className="text-gray-500">浏览器版本</span>
                         <span className="font-medium">{browser?.version || '-'}</span>
