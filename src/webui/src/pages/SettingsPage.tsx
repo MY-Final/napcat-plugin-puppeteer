@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Globe, Image, Settings as SettingsIcon, AlertCircle, Download, Check, Info, Monitor, Server } from 'lucide-react'
+import { Globe, Image, Settings as SettingsIcon, AlertCircle, Download, Check, Info, Monitor, Server, Trash2 } from 'lucide-react'
 import { authFetch, noAuthFetch } from '../utils/api'
 import { showToast } from '../hooks/useToast'
 import type { PluginConfig, ChromeStatus, ChromeProgress } from '../types'
@@ -58,6 +58,7 @@ export default function SettingsPage() {
     const [progress, setProgress] = useState<ChromeProgress | null>(null)
     const [isInstalling, setIsInstalling] = useState(false)
     const [showResetConfirm, setShowResetConfirm] = useState(false)
+    const [showUninstallConfirm, setShowUninstallConfirm] = useState(false)
     const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const resetConfirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -283,6 +284,29 @@ export default function SettingsPage() {
         } catch (e) {
             showToast('启动安装失败: ' + (e as Error).message, 'error')
             setIsInstalling(false)
+        }
+    }
+
+    const uninstallChrome = async () => {
+        // 使用非模态确认方式，避免 window.confirm 被 iframe 拦截或样式问题
+        if (showUninstallConfirm) {
+            setShowUninstallConfirm(false)
+            showToast('正在卸载 Chrome...', 'info')
+            try {
+                const data = await authFetch('/chrome/uninstall', { method: 'POST' })
+                const success = data.code === 0
+                showToast(data.message || (success ? '卸载成功' : '卸载失败'), success ? 'success' : 'error')
+                // 卸载后刷新状态
+                setTimeout(() => {
+                    loadChromeStatus()
+                }, 1000)
+            } catch (e) {
+                showToast('卸载失败: ' + (e as Error).message, 'error')
+            }
+        } else {
+            setShowUninstallConfirm(true)
+            // 3秒后自动取消确认状态
+            setTimeout(() => setShowUninstallConfirm(false), 3000)
         }
     }
 
@@ -520,15 +544,29 @@ export default function SettingsPage() {
 
             {/* Chrome Setup */}
             <div className="bg-white dark:bg-[#1a1b1d] rounded-lg border border-gray-200 dark:border-gray-800 p-6">
-                <div className="flex items-center gap-3 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
-                    <Download size={20} className="text-gray-900 dark:text-gray-100" />
-                    <div>
-                        <h3 className="font-bold text-base text-gray-900 dark:text-white">环境管理</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                            {status?.platform === 'win32' ? 'Windows' : status?.platform === 'darwin' ? 'macOS' : 'Linux'}
-                            {status?.arch ? ` (${status.arch})` : ''} 环境浏览器管理
-                        </p>
+                <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+                    <div className="flex items-center gap-3">
+                        <Download size={20} className="text-gray-900 dark:text-gray-100" />
+                        <div>
+                            <h3 className="font-bold text-base text-gray-900 dark:text-white">环境管理</h3>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                {status?.platform === 'win32' ? 'Windows' : status?.platform === 'darwin' ? 'macOS' : 'Linux'}
+                                {status?.arch ? ` (${status.arch})` : ''} 环境浏览器管理
+                            </p>
+                        </div>
                     </div>
+
+                    <button
+                        onClick={uninstallChrome}
+                        className={`btn text-xs px-3 py-1.5 border shadow-none transition-all ${showUninstallConfirm
+                                ? 'bg-red-600 hover:bg-red-700 text-white border-red-600 animate-pulse'
+                                : 'bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/30'
+                            }`}
+                        title="卸载内置 Chrome（如果浏览器损坏可尝试此操作）"
+                    >
+                        <Trash2 size={14} className="mr-1.5" />
+                        {showUninstallConfirm ? '再次点击确认卸载' : '卸载 Chrome'}
+                    </button>
                 </div>
 
                 {/* 已安装的浏览器列表 */}
