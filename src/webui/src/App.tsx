@@ -5,19 +5,17 @@ import StatusPage from './pages/StatusPage'
 import TestPage from './pages/TestPage'
 import ApiPage from './pages/ApiPage'
 import SettingsPage from './pages/SettingsPage'
-import ChromePage from './pages/ChromePage'
 import ToastContainer from './components/ToastContainer'
 import { useStatus } from './hooks/useStatus'
 import { useTheme } from './hooks/useTheme'
 
-export type PageId = 'status' | 'test' | 'api' | 'settings' | 'chrome'
+export type PageId = 'status' | 'test' | 'api' | 'settings'
 
 const pageConfig: Record<PageId, { title: string; desc: string }> = {
-    status: { title: '运行状态', desc: '查看插件和服务概览' },
-    test: { title: '渲染测试', desc: '测试 HTML 渲染效果' },
-    api: { title: 'API 文档', desc: '接口调用参考' },
-    settings: { title: '设置', desc: '插件配置管理' },
-    chrome: { title: 'Chrome 安装', desc: '安装和管理 Chrome 浏览器' },
+    status: { title: '仪表盘', desc: '查看插件和服务概览' },
+    test: { title: '截图调试', desc: '测试 HTML 渲染效果' },
+    api: { title: '接口文档', desc: '开发者调用参考' },
+    settings: { title: '系统设置', desc: '插件配置与环境管理' },
 }
 
 function App() {
@@ -49,8 +47,6 @@ function App() {
                 return <ApiPage />
             case 'settings':
                 return <SettingsPage />
-            case 'chrome':
-                return <ChromePage />
             default:
                 return <StatusPage status={status} onRefresh={fetchStatus} />
         }
