@@ -17,6 +17,11 @@
     - [通过 WebUI 插件市场安装（推荐）](#通过-webui-插件市场安装推荐)
     - [手动安装（发布版）](#手动安装发布版)
     - [从源码构建](#从源码构建)
+  - [自动安装 Chrome（WebUI 一键安装）](#自动安装-chromewebui-一键安装)
+    - [支持的平台](#支持的平台)
+    - [使用方法](#使用方法)
+    - [下载源选择](#下载源选择)
+    - [Linux 系统依赖](#linux-系统依赖)
   - [Docker 部署远程浏览器（推荐）](#docker-部署远程浏览器推荐)
     - [为什么推荐这种方式？](#为什么推荐这种方式)
     - [方式一：与 NapCat Docker 同网络部署（推荐）](#方式一与-napcat-docker-同网络部署推荐)
@@ -35,6 +40,11 @@
       - [Q: 如何查看浏览器服务日志？](#q-如何查看浏览器服务日志)
       - [Q: 如何限制浏览器资源使用？](#q-如何限制浏览器资源使用)
       - [Q: browserless/chrome 有 Web 管理界面吗？](#q-browserlesschrome-有-web-管理界面吗)
+  - [NapCat Docker 用户：本地安装 Chrome 并持久化](#napcat-docker-用户本地安装-chrome-并持久化)
+    - [方案一：挂载 Chrome 安装目录（推荐）](#方案一挂载-chrome-安装目录推荐)
+    - [方案二：使用 Docker Volume](#方案二使用-docker-volume)
+    - [方案三：构建自定义镜像（一劳永逸）](#方案三构建自定义镜像一劳永逸)
+    - [注意事项](#注意事项)
   - [运行时行为](#运行时行为)
   - [API 参考](#api-参考)
     - [基础信息](#基础信息)
@@ -98,7 +108,10 @@
 ## 运行前准备
 
 - 安装 [NapCat](https://napneko.github.io/napcat/) 并启用插件管理功能。
-- 系统需安装可执行的 Chromium 内核浏览器（Chrome、Edge 或 Chromium），或者使用 [Docker 部署远程浏览器](#docker-部署远程浏览器推荐)。插件会自动检测常见路径，若失败需手动配置。
+- 浏览器环境（以下方式任选其一）：
+  - **自动安装（推荐）**：插件支持在 WebUI 中一键安装 Chrome for Testing，支持 Windows、macOS、Linux（x64）平台
+  - **手动安装**：系统需安装可执行的 Chromium 内核浏览器（Chrome、Edge 或 Chromium），插件会自动检测常见路径
+  - **远程浏览器**：使用 [Docker 部署远程浏览器](#docker-部署远程浏览器推荐)，适合 Docker 环境或不想本地安装浏览器的用户
 - 建议安装 `pnpm`，方便从源码构建。
 
 ## 安装与部署
@@ -128,6 +141,47 @@ pnpm run build
 - 使用 Vite 将 `src/index.ts` 打包成 `dist/index.mjs`。
 - 自动将 `src/webui` 复制到 `dist/webui`。
 - 精简 `package.json` 后同步到 `dist/package.json`（移除开发依赖、脚本）。
+
+## 自动安装 Chrome（WebUI 一键安装）
+
+插件支持在 WebUI 中自动下载安装 Chrome for Testing，无需手动配置浏览器路径。
+
+### 支持的平台
+
+| 平台 | 架构 | 支持状态 |
+|------|------|----------|
+| Windows | x64 / x86 | ✅ 完全支持 |
+| macOS | Intel / Apple Silicon | ✅ 完全支持 |
+| Linux | x64 | ✅ 完全支持 |
+| Linux | ARM64 | ❌ 暂不支持（建议使用远程浏览器） |
+
+### 使用方法
+
+1. 进入 **扩展页面** → **Puppeteer 渲染服务** → **控制台**
+2. 点击左侧 **设置**
+3. 在 **环境管理** 区域：
+   - 查看系统已安装的浏览器列表，可一键选择使用
+   - 如果没有可用浏览器，点击 **立即安装 Chrome** 按钮
+4. 安装过程会显示进度条，完成后自动配置并启动浏览器
+
+### 下载源选择
+
+| 下载源 | 说明 |
+|--------|------|
+| NPM 镜像（推荐） | 国内用户推荐，速度快 |
+| Google 官方源 | 国外用户或需要最新版本时使用 |
+
+### Linux 系统依赖
+
+在 Linux 上安装 Chrome 时，插件会自动安装所需的系统依赖。支持以下发行版：
+
+- **Debian/Ubuntu 系列**：Debian、Ubuntu、Linux Mint、Pop!_OS、Elementary OS 等
+- **Fedora/RHEL 系列**：Fedora、RHEL、CentOS、Rocky Linux、AlmaLinux 等
+- **Arch Linux 系列**：Arch、Manjaro、EndeavourOS 等
+- **openSUSE 系列**：openSUSE、SLES 等
+- **Alpine Linux**：轻量级容器环境
+
+> ⚠️ **注意**：自动安装依赖需要 root 权限。如果没有权限，请手动安装依赖或使用远程浏览器。
 
 ## Docker 部署远程浏览器（推荐）
 
@@ -370,6 +424,120 @@ docker run -d \
 - 当前活跃会话
 - 性能指标
 - 调试工具
+
+## NapCat Docker 用户：本地安装 Chrome 并持久化
+
+如果你不想使用远程浏览器，而是希望在 NapCat Docker 容器内安装 Chrome，可以通过以下方式在更新镜像时保留已安装的 Chrome。
+
+### 方案一：挂载 Chrome 安装目录（推荐）
+
+Chrome 默认安装在 `/app/.cache/puppeteer/chrome` 目录（容器内路径），将此目录挂载到宿主机即可持久化：
+
+```bash
+# 创建宿主机目录
+mkdir -p /path/to/napcat-data/chrome-cache
+
+# 启动容器时挂载
+docker run -d \
+  --name napcat \
+  -v /path/to/napcat-data:/app/napcat/data \
+  -v /path/to/napcat-data/chrome-cache:/app/.cache/puppeteer \
+  # ... 其他参数
+  mlikiowa/napcat-docker:latest
+```
+
+**Docker Compose 配置**：
+
+```yaml
+services:
+  napcat:
+    image: mlikiowa/napcat-docker:latest
+    volumes:
+      - ./napcat-data:/app/napcat/data
+      - ./napcat-data/chrome-cache:/app/.cache/puppeteer  # Chrome 持久化
+    # ... 其他配置
+```
+
+这样即使更新 NapCat 镜像，Chrome 也会保留在宿主机上。
+
+### 方案二：使用 Docker Volume
+
+```bash
+# 创建命名卷
+docker volume create napcat-chrome-cache
+
+# 启动容器时使用
+docker run -d \
+  --name napcat \
+  -v napcat-data:/app/napcat/data \
+  -v napcat-chrome-cache:/app/.cache/puppeteer \
+  # ... 其他参数
+  mlikiowa/napcat-docker:latest
+```
+
+### 方案三：构建自定义镜像（一劳永逸）
+
+如果你希望镜像自带 Chrome，可以基于 NapCat 镜像构建：
+
+```dockerfile
+FROM mlikiowa/napcat-docker:latest
+
+# 安装 Chrome 依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libatspi2.0-0 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libexpat1 \
+    libgbm1 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libx11-6 \
+    libxcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxkbcommon0 \
+    libxrandr2 \
+    wget \
+    xdg-utils \
+    fonts-noto-cjk \
+    fonts-wqy-zenhei \
+    && rm -rf /var/lib/apt/lists/*
+
+# 下载 Chrome for Testing（可选，也可以让插件自动安装）
+# RUN mkdir -p /root/.cache/puppeteer && \
+#     wget -q -O /tmp/chrome.zip "https://cdn.npmmirror.com/binaries/chrome-for-testing/131.0.6778.204/linux64/chrome-linux64.zip" && \
+#     unzip /tmp/chrome.zip -d /root/.cache/puppeteer/chrome && \
+#     rm /tmp/chrome.zip
+```
+
+构建并使用：
+
+```bash
+docker build -t napcat-with-chrome .
+docker run -d --name napcat napcat-with-chrome
+```
+
+### 注意事项
+
+1. **首次安装**：挂载目录后，首次仍需在 WebUI 中点击「安装 Chrome」
+2. **权限问题**：确保挂载目录的权限正确，容器内用户可读写
+3. **磁盘空间**：Chrome for Testing 约需 400MB 磁盘空间
+4. **推荐方案**：对于 Docker 用户，我们仍然**更推荐使用远程浏览器方案**，因为：
+   - 资源隔离更好
+   - 不受 NapCat 容器更新影响
+   - 可多实例共享
 
 ## 运行时行为
 
