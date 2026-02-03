@@ -22,8 +22,10 @@ const execAsync = promisify(exec);
 export const DOWNLOAD_SOURCES = {
     /** 谷歌官方源 */
     GOOGLE: 'https://storage.googleapis.com/chrome-for-testing-public',
-    /** NPM 镜像源（国内推荐） */
+    /** NPM 镜像源 CDN（国内推荐） */
     NPMMIRROR: 'https://cdn.npmmirror.com/binaries/chrome-for-testing',
+    /** NPM 镜像源 Registry（备用） */
+    NPMMIRROR_REGISTRY: 'https://registry.npmmirror.com/-/binary/chrome-for-testing',
 } as const;
 
 /** 默认 Chrome 版本 */
@@ -1533,7 +1535,7 @@ export async function installChrome(options: InstallOptions = {}): Promise<{
             message: '正在准备下载...',
         });
 
-        const sources = ['NPMMIRROR', 'GOOGLE'] as const;
+        const sources = ['NPMMIRROR', 'NPMMIRROR_REGISTRY', 'GOOGLE'] as const;
         let downloadSuccess = false;
         let lastError = '';
 
