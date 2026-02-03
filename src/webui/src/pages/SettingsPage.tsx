@@ -559,8 +559,8 @@ export default function SettingsPage() {
                     <button
                         onClick={uninstallChrome}
                         className={`btn text-xs px-3 py-1.5 border shadow-none transition-all ${showUninstallConfirm
-                                ? 'bg-red-600 hover:bg-red-700 text-white border-red-600 animate-pulse'
-                                : 'bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/30'
+                            ? 'bg-red-600 hover:bg-red-700 text-white border-red-600 animate-pulse'
+                            : 'bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/30'
                             }`}
                         title="卸载内置 Chrome（如果浏览器损坏可尝试此操作）"
                     >
@@ -693,9 +693,11 @@ export default function SettingsPage() {
                                     onChange={(e) => setSource(e.target.value)}
                                     className="input-field text-sm"
                                 >
-                                    <option value="NPMMIRROR">NPM 镜像 (国内推荐)</option>
+                                    <option value="NPMMIRROR">NPM 镜像 CDN (国内推荐)</option>
+                                    <option value="NPMMIRROR_REGISTRY">淘宝源 Registry (备用)</option>
                                     <option value="GOOGLE">Google 官方源</option>
                                 </select>
+                                <div className="text-xs text-gray-400 mt-1">国内用户推荐使用 NPM 镜像源，下载速度更快</div>
                             </div>
                         </div>
 
