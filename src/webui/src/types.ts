@@ -12,6 +12,7 @@ export interface BrowserStatus {
 
 export interface PluginStatus {
     browser: BrowserStatus
+    uptime: number
     uptimeFormatted: string
 }
 

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Play, RotateCcw, Square, Shield, CheckCircle, XCircle, Globe, Laptop } from 'lucide-react'
 import type { PluginStatus } from '../types'
 import { authFetch } from '../utils/api'
@@ -8,8 +9,57 @@ interface StatusPageProps {
     onRefresh: () => void
 }
 
+// 格式化运行时长
+function formatUptime(uptimeMs: number): string {
+    const seconds = Math.floor(uptimeMs / 1000)
+    const days = Math.floor(seconds / 86400)
+    const hours = Math.floor((seconds % 86400) / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+
+    if (days > 0) {
+        return `${days}天 ${hours}小时 ${minutes}分 ${secs}秒`
+    } else if (hours > 0) {
+        return `${hours}小时 ${minutes}分 ${secs}秒`
+    } else if (minutes > 0) {
+        return `${minutes}分 ${secs}秒`
+    } else {
+        return `${secs}秒`
+    }
+}
+
 export default function StatusPage({ status, onRefresh }: StatusPageProps) {
     const browser = status?.browser
+    const [displayUptime, setDisplayUptime] = useState<string>('-')
+    // 记录上次同步时的基准信息
+    const [syncInfo, setSyncInfo] = useState<{ baseUptime: number; syncTime: number } | null>(null)
+
+    // 当 status.uptime 变化时同步基准值
+    useEffect(() => {
+        if (status?.uptime !== undefined && status.uptime > 0) {
+            setSyncInfo({
+                baseUptime: status.uptime,
+                syncTime: Date.now()
+            })
+        }
+    }, [status?.uptime])
+
+    // 每秒更新显示
+    useEffect(() => {
+        if (!syncInfo) {
+            setDisplayUptime('-')
+            return
+        }
+
+        const updateUptime = () => {
+            const elapsed = Date.now() - syncInfo.syncTime
+            setDisplayUptime(formatUptime(syncInfo.baseUptime + elapsed))
+        }
+
+        updateUptime()
+        const interval = setInterval(updateUptime, 1000)
+        return () => clearInterval(interval)
+    }, [syncInfo])
 
     const browserAction = async (action: string, name: string) => {
         showToast(`正在${name}浏览器...`, 'info')
@@ -41,7 +91,7 @@ export default function StatusPage({ status, onRefresh }: StatusPageProps) {
                 </div>
                 <div className="glass-card p-6 border-l-4 border-l-green-500/60">
                     <div className="text-gray-500 text-sm mb-2 font-medium">运行时长</div>
-                    <div className="text-xl font-bold text-gray-800 dark:text-gray-100 truncate pt-2">{status?.uptimeFormatted || '-'}</div>
+                    <div className="text-xl font-bold text-gray-800 dark:text-gray-100 truncate pt-2">{displayUptime}</div>
                 </div>
             </div>
 
