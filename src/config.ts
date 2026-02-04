@@ -12,7 +12,6 @@ export const DEFAULT_BROWSER_CONFIG: BrowserConfig = {
     browserWSEndpoint: '',
     headless: true,
     args: [
-        '--guest',
         '--window-size=800,600',
         '--disable-gpu',
         '--no-sandbox',
