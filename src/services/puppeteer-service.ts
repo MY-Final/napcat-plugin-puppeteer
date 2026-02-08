@@ -27,9 +27,6 @@ import type {
 /** 浏览器实例 */
 let browser: Browser | null = null;
 
-/** 保活页面（远程模式下防止连接断开） */
-let keepAlivePage: Page | null = null;
-
 /** 当前打开的页面数 */
 let currentPageCount = 0;
 
@@ -41,8 +38,16 @@ let isReconnecting = false;
 let isClosing = false; // 标记是否正在主动关闭
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
-const RECONNECT_DELAY_BASE = 1000; // 基础重连延迟 1 秒
+const RECONNECT_DELAY_BASE = 3000; // 基础重连延迟 3 秒
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** 健康检查定时器 */
+let healthCheckTimer: ReturnType<typeof setInterval> | null = null;
+const HEALTH_CHECK_INTERVAL = 30000; // 30 秒检测一次连接健康
+
+/** 断连防抖：避免瞬间多次断连触发多次重连 */
+let disconnectDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+const DISCONNECT_DEBOUNCE_MS = 2000; // 断连后等待 2 秒再触发重连
 
 /** 统计信息 */
 const stats = {
@@ -71,8 +76,39 @@ function clearReconnectState(): void {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
     }
+    if (disconnectDebounceTimer) {
+        clearTimeout(disconnectDebounceTimer);
+        disconnectDebounceTimer = null;
+    }
     isReconnecting = false;
     reconnectAttempts = 0;
+}
+
+/**
+ * 启动远程连接健康检查
+ * 定期通过 browser.version() 探测连接是否正常
+ */
+function startHealthCheck(): void {
+    stopHealthCheck();
+    healthCheckTimer = setInterval(async () => {
+        if (!browser || isClosing || isReconnecting) return;
+        try {
+            await browser.version();
+        } catch {
+            pluginState.logDebug('健康检查失败，连接可能已断开');
+            // 不需要手动处理，puppeteer 的 disconnected 事件会自动触发
+        }
+    }, HEALTH_CHECK_INTERVAL);
+}
+
+/**
+ * 停止健康检查
+ */
+function stopHealthCheck(): void {
+    if (healthCheckTimer) {
+        clearInterval(healthCheckTimer);
+        healthCheckTimer = null;
+    }
 }
 
 /**
@@ -100,14 +136,14 @@ async function attemptReconnect(): Promise<boolean> {
     isReconnecting = true;
     reconnectAttempts++;
 
-    // 指数退避延迟
-    const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts - 1);
+    // 指数退避延迟，最大 30 秒
+    const delay = Math.min(RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts - 1), 30000);
     pluginState.log('info', `将在 ${delay}ms 后尝试第 ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} 次重连...`);
 
     await new Promise(resolve => setTimeout(resolve, delay));
 
     try {
-        pluginState.log('info', `正在重连远程浏览器: ${config.browserWSEndpoint}`);
+        pluginState.logDebug(`正在重连远程浏览器: ${config.browserWSEndpoint}`);
 
         browser = await puppeteer.connect({
             browserWSEndpoint: config.browserWSEndpoint,
@@ -117,21 +153,15 @@ async function attemptReconnect(): Promise<boolean> {
         // 重新注册断开事件监听
         setupDisconnectHandler();
 
-        // 创建保活页面
-        try {
-            keepAlivePage = await browser.newPage();
-            await keepAlivePage.goto('about:blank');
-            pluginState.logDebug('已创建保活页面');
-        } catch (error) {
-            pluginState.logDebug('创建保活页面失败:', error);
-        }
+        // 启动健康检查
+        startHealthCheck();
 
         stats.startTime = Date.now();
         pluginState.log('info', '远程浏览器重连成功');
         clearReconnectState();
         return true;
     } catch (error) {
-        pluginState.log('warn', `重连失败 (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}):`, error);
+        pluginState.logDebug(`重连失败 (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}):`, error);
         browser = null;
         isReconnecting = false;
 
@@ -139,6 +169,7 @@ async function attemptReconnect(): Promise<boolean> {
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
             return attemptReconnect();
         } else {
+            pluginState.log('error', `远程浏览器重连失败，已达到最大重试次数 (${MAX_RECONNECT_ATTEMPTS})`);
             clearReconnectState();
             return false;
         }
@@ -155,27 +186,43 @@ function setupDisconnectHandler(): void {
     const isRemoteMode = !!config.browserWSEndpoint;
 
     browser.on('disconnected', () => {
-        // 如果是主动关闭，不触发重连
+        // 如果是主动关闭/断开，不触发重连
         if (isClosing) {
-            pluginState.logDebug('浏览器已主动关闭，跳过重连');
+            pluginState.logDebug('浏览器已主动关闭/断开，跳过重连');
             return;
         }
 
-        if (isRemoteMode) {
-            pluginState.log('warn', '远程浏览器连接已断开，准备自动重连...');
-        } else {
-            pluginState.log('warn', '浏览器已断开连接');
-        }
+        // 停止健康检查
+        stopHealthCheck();
 
         browser = null;
-        keepAlivePage = null;
         currentPageCount = 0;
         pageQueue = [];
 
-        // 远程模式下自动重连
-        if (isRemoteMode && !isReconnecting) {
-            attemptReconnect();
+        if (!isRemoteMode) {
+            pluginState.log('warn', '本地浏览器已断开连接');
+            return;
         }
+
+        // 远程模式：使用防抖避免瞬间多次触发
+        if (isReconnecting) {
+            pluginState.logDebug('已在重连中，跳过重复的断连事件');
+            return;
+        }
+
+        // 清除之前的防抖定时器
+        if (disconnectDebounceTimer) {
+            clearTimeout(disconnectDebounceTimer);
+        }
+
+        pluginState.logDebug('远程浏览器连接断开，等待防抖后重连...');
+        disconnectDebounceTimer = setTimeout(() => {
+            disconnectDebounceTimer = null;
+            if (!isClosing && !isReconnecting && !browser) {
+                pluginState.log('warn', '远程浏览器连接已断开，准备自动重连...');
+                attemptReconnect();
+            }
+        }, DISCONNECT_DEBOUNCE_MS);
     });
 }
 
@@ -258,17 +305,16 @@ export async function initBrowser(): Promise<boolean> {
             // 监听浏览器断开事件（带自动重连）
             setupDisconnectHandler();
 
-            // 创建保活页面，防止所有页面关闭时连接断开
-            try {
-                keepAlivePage = await browser.newPage();
-                await keepAlivePage.goto('about:blank');
-                pluginState.logDebug('已创建保活页面');
-            } catch (error) {
-                pluginState.logDebug('创建保活页面失败:', error);
-            }
+            // 远程模式不再创建保活页面
+            // 保活页面会导致某些 Chrome 容器（如 browserless）误判为活跃会话，
+            // 空闲超时后清理并重启浏览器，形成断连-重连循环。
+            // puppeteer.connect() 本身通过 WebSocket 保持连接，无需额外保活。
 
             // 重置重连计数
             clearReconnectState();
+
+            // 启动健康检查
+            startHealthCheck();
 
             stats.startTime = Date.now();
             pluginState.log('info', '远程浏览器连接成功');
@@ -330,18 +376,29 @@ export async function closeBrowser(): Promise<void> {
     // 标记正在主动关闭，防止 disconnected 事件触发重连
     isClosing = true;
 
-    // 清理重连状态
+    // 清理重连状态和健康检查
     clearReconnectState();
+    stopHealthCheck();
 
     if (browser) {
+        const config = pluginState.config.browser;
+        const isRemoteMode = !!config.browserWSEndpoint;
+
         try {
-            await browser.close();
-            pluginState.log('info', '浏览器已关闭');
+            if (isRemoteMode) {
+                // 远程模式：仅断开连接，不关闭远程浏览器进程
+                // browser.close() 会关闭远程浏览器进程，导致容器重启
+                browser.disconnect();
+                pluginState.log('info', '已断开远程浏览器连接');
+            } else {
+                // 本地模式：关闭浏览器进程
+                await browser.close();
+                pluginState.log('info', '浏览器已关闭');
+            }
         } catch (error) {
-            pluginState.log('error', '关闭浏览器失败:', error);
+            pluginState.log('error', '关闭/断开浏览器失败:', error);
         } finally {
             browser = null;
-            keepAlivePage = null;
             currentPageCount = 0;
             pageQueue = [];
             isClosing = false;
