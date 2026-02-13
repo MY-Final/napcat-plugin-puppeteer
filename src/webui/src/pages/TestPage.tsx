@@ -126,7 +126,7 @@ export default function TestPage() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-{/* Type Select */}
+                    {/* Type Select */}
                     <div>
                         <label className="text-[10px] font-semibold text-gray-500 uppercase mb-1.5 block tracking-wider">渲染类型</label>
                         <select

@@ -367,12 +367,6 @@ export async function initBrowser(): Promise<boolean> {
             if (config.proxy.bypassList) {
                 launchOptions.args.push(`--proxy-bypass-list=${config.proxy.bypassList}`);
             }
-
-            // 如果代理需要认证，使用 Puppeteer 的代理认证
-            if (config.proxy.username && config.proxy.password) {
-                launchOptions.proxyUsername = config.proxy.username;
-                launchOptions.proxyPassword = config.proxy.password;
-            }
         }
 
         browser = await puppeteer.launch(launchOptions);
@@ -452,7 +446,7 @@ export async function getBrowserStatus(): Promise<BrowserStatus> {
     const config = pluginState.config.browser;
     const isRemoteMode = !!config.browserWSEndpoint;
 
-if (!browser) {
+    if (!browser) {
         pluginState.logDebug('浏览器未连接');
         return {
             connected: false,
@@ -470,7 +464,7 @@ if (!browser) {
         };
     }
 
-try {
+    try {
         const version = await browser.version();
         const pages = await browser.pages();
 
@@ -530,6 +524,16 @@ async function acquirePage(): Promise<Page> {
     }
 
     const page = await browser.newPage();
+
+    // 应用代理认证（仅本地模式有效，远程模式由远程浏览器处理）
+    const config = pluginState.config.browser;
+    if (config.proxy?.server && config.proxy.username && config.proxy.password && !config.browserWSEndpoint) {
+        await page.authenticate({
+            username: config.proxy.username,
+            password: config.proxy.password,
+        });
+    }
+
     return page;
 }
 
