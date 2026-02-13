@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Globe, Image, Settings as SettingsIcon, AlertCircle, Download, Check, Info, Monitor, Server, Trash2 } from 'lucide-react'
+import { Globe, Image, Settings as SettingsIcon, AlertCircle, Download, Check, Info, Monitor, Server, Trash2, Lock } from 'lucide-react'
 import { authFetch, noAuthFetch } from '../utils/api'
 import { showToast } from '../hooks/useToast'
 import type { PluginConfig, ChromeStatus, ChromeProgress } from '../types'
@@ -34,6 +34,10 @@ const defaultSettings = {
     defaultWidth: 800,
     defaultHeight: 600,
     defaultScale: 1,
+    proxyServer: '',
+    proxyUsername: '',
+    proxyPassword: '',
+    proxyBypassList: '',
 }
 
 export default function SettingsPage() {
@@ -49,6 +53,10 @@ export default function SettingsPage() {
         defaultScale: defaultSettings.defaultScale,
         debug: false,
         autoStart: true,
+        proxyServer: '',
+        proxyUsername: '',
+        proxyPassword: '',
+        proxyBypassList: '',
     })
 
     const [status, setStatus] = useState<ChromeStatus | null>(null)
@@ -109,7 +117,7 @@ export default function SettingsPage() {
         }
     }
 
-    const loadSettings = useCallback(async () => {
+const loadSettings = useCallback(async () => {
         try {
             const data = await authFetch<PluginConfig>('/config')
             if (data.code === 0 && data.data) {
@@ -126,6 +134,10 @@ export default function SettingsPage() {
                     defaultScale: cfg.browser?.deviceScaleFactor || defaultSettings.defaultScale,
                     debug: cfg.debug || false,
                     autoStart: cfg.enabled !== false,
+                    proxyServer: cfg.browser?.proxy?.server || '',
+                    proxyUsername: cfg.browser?.proxy?.username || '',
+                    proxyPassword: cfg.browser?.proxy?.password || '',
+                    proxyBypassList: cfg.browser?.proxy?.bypassList || '',
                 })
             }
         } catch (e) {
@@ -138,7 +150,7 @@ export default function SettingsPage() {
         loadChromeStatus()
     }, [loadSettings, loadChromeStatus])
 
-    const saveSettings = useCallback(async (showSuccess = true) => {
+const saveSettings = useCallback(async (showSuccess = true) => {
         try {
             const configData = {
                 enabled: config.autoStart,
@@ -152,6 +164,12 @@ export default function SettingsPage() {
                     defaultViewportWidth: config.defaultWidth,
                     defaultViewportHeight: config.defaultHeight,
                     deviceScaleFactor: config.defaultScale,
+                    proxy: config.proxyServer ? {
+                        server: config.proxyServer,
+                        username: config.proxyUsername || undefined,
+                        password: config.proxyPassword || undefined,
+                        bypassList: config.proxyBypassList || undefined,
+                    } : undefined,
                 },
                 debug: config.debug,
             }
@@ -183,7 +201,7 @@ export default function SettingsPage() {
         debounceSave()
     }, [config, debounceSave])
 
-    const handleResetClick = async () => {
+const handleResetClick = async () => {
         if (showResetConfirm) {
             // 第二次点击，执行重置
             setShowResetConfirm(false)
@@ -202,6 +220,10 @@ export default function SettingsPage() {
                 defaultScale: defaultSettings.defaultScale,
                 debug: false,
                 autoStart: defaultSettings.autoStart,
+                proxyServer: '',
+                proxyUsername: '',
+                proxyPassword: '',
+                proxyBypassList: '',
             }
             setConfig(newConfig)
 
@@ -368,7 +390,7 @@ export default function SettingsPage() {
                         </p>
                     </div>
 
-                    <div>
+<div>
                         <label className="text-[10px] font-semibold text-gray-500 uppercase mb-1.5 block tracking-wider">启动参数</label>
                         <input
                             type="text"
@@ -378,6 +400,64 @@ export default function SettingsPage() {
                             placeholder="--no-sandbox,--disable-setuid-sandbox"
                         />
                         <p className="text-[10px] text-gray-400 mt-1">浏览器启动参数，多个参数用逗号分隔</p>
+                    </div>
+
+                    {/* Proxy Settings */}
+                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Lock size={14} className="text-gray-400" />
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">代理服务器配置</span>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-semibold text-gray-500 uppercase mb-1.5 block tracking-wider">代理服务器地址</label>
+                                <input
+                                    type="text"
+                                    value={config.proxyServer}
+                                    onChange={(e) => updateConfig('proxyServer', e.target.value)}
+                                    className="input-field font-mono text-sm"
+                                    placeholder="http://127.0.0.1:7890 或 socks5://127.0.0.1:1080"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1">
+                                    格式: protocol://host:port，例如 http://127.0.0.1:7890，socks5://127.0.0.1:1080
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-semibold text-gray-500 uppercase mb-1.5 block tracking-wider">代理用户名</label>
+                                    <input
+                                        type="text"
+                                        value={config.proxyUsername}
+                                        onChange={(e) => updateConfig('proxyUsername', e.target.value)}
+                                        className="input-field font-mono text-sm"
+                                        placeholder="可选"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-semibold text-gray-500 uppercase mb-1.5 block tracking-wider">代理密码</label>
+                                    <input
+                                        type="password"
+                                        value={config.proxyPassword}
+                                        onChange={(e) => updateConfig('proxyPassword', e.target.value)}
+                                        className="input-field font-mono text-sm"
+                                        placeholder="可选"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-semibold text-gray-500 uppercase mb-1.5 block tracking-wider">Bypass 列表</label>
+                                <input
+                                    type="text"
+                                    value={config.proxyBypassList}
+                                    onChange={(e) => updateConfig('proxyBypassList', e.target.value)}
+                                    className="input-field font-mono text-sm"
+                                    placeholder="localhost,127.0.0.1,.local"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1">
+                                    逗号分隔的域名列表，这些域名不走代理
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#202124] rounded-md border border-gray-100 dark:border-gray-800">

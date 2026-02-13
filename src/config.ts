@@ -27,6 +27,12 @@ export const DEFAULT_BROWSER_CONFIG: BrowserConfig = {
         '--disable-device-discovery-notifications',
         '--disable-accelerated-2d-canvas',
     ],
+    proxy: {
+        server: '',
+        username: '',
+        password: '',
+        bypassList: '',
+    },
     maxPages: 10,
     timeout: 30000,
     defaultViewportWidth: 800,

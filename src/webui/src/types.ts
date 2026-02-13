@@ -6,6 +6,11 @@ export interface BrowserStatus {
     executablePath?: string
     browserWSEndpoint?: string
     mode?: 'local' | 'remote'
+    proxy?: {
+        server?: string
+        username?: string
+        bypassList?: string
+    }
     totalRenders: number
     failedRenders: number
 }
@@ -23,6 +28,13 @@ export interface ApiResponse<T = unknown> {
     time?: number
 }
 
+export interface BrowserProxyConfig {
+    server?: string
+    username?: string
+    password?: string
+    bypassList?: string
+}
+
 export interface PluginConfig {
     enabled: boolean
     debug: boolean
@@ -36,6 +48,7 @@ export interface PluginConfig {
         defaultViewportWidth: number
         defaultViewportHeight: number
         deviceScaleFactor: number
+        proxy?: BrowserProxyConfig
     }
 }
 

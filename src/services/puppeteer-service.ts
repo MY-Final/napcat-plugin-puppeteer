@@ -345,12 +345,37 @@ export async function initBrowser(): Promise<boolean> {
 
         pluginState.log('info', `正在启动本地浏览器: ${executablePath}`);
 
-        browser = await puppeteer.launch({
+        // 构建代理配置
+        const launchOptions: any = {
             executablePath,
             headless: config.headless !== false,
             args: getBrowserArgs(config),
             defaultViewport: getDefaultViewport(config),
-        });
+        };
+
+        // 应用代理配置（仅本地模式有效）
+        if (config.proxy?.server) {
+            const proxyServer = config.proxy.server;
+            pluginState.log('info', `配置代理服务器: ${proxyServer}`);
+
+            launchOptions.args = [
+                `--proxy-server=${proxyServer}`,
+                ...launchOptions.args,
+            ];
+
+            // 添加代理 bypass 列表
+            if (config.proxy.bypassList) {
+                launchOptions.args.push(`--proxy-bypass-list=${config.proxy.bypassList}`);
+            }
+
+            // 如果代理需要认证，使用 Puppeteer 的代理认证
+            if (config.proxy.username && config.proxy.password) {
+                launchOptions.proxyUsername = config.proxy.username;
+                launchOptions.proxyPassword = config.proxy.password;
+            }
+        }
+
+        browser = await puppeteer.launch(launchOptions);
 
         // 监听浏览器关闭事件
         setupDisconnectHandler();
@@ -427,7 +452,7 @@ export async function getBrowserStatus(): Promise<BrowserStatus> {
     const config = pluginState.config.browser;
     const isRemoteMode = !!config.browserWSEndpoint;
 
-    if (!browser) {
+if (!browser) {
         pluginState.logDebug('浏览器未连接');
         return {
             connected: false,
@@ -435,12 +460,17 @@ export async function getBrowserStatus(): Promise<BrowserStatus> {
             pageCount: 0,
             executablePath: isRemoteMode ? undefined : findBrowserPath(config.executablePath, true),
             browserWSEndpoint: isRemoteMode ? config.browserWSEndpoint : undefined,
+            proxy: config.proxy?.server ? {
+                server: config.proxy.server,
+                username: config.proxy.username,
+                bypassList: config.proxy.bypassList,
+            } : undefined,
             totalRenders: stats.totalRenders,
             failedRenders: stats.failedRenders,
         };
     }
 
-    try {
+try {
         const version = await browser.version();
         const pages = await browser.pages();
 
@@ -451,6 +481,11 @@ export async function getBrowserStatus(): Promise<BrowserStatus> {
             pageCount: pages.length,
             executablePath: isRemoteMode ? undefined : findBrowserPath(config.executablePath, true),
             browserWSEndpoint: isRemoteMode ? config.browserWSEndpoint : undefined,
+            proxy: config.proxy?.server ? {
+                server: config.proxy.server,
+                username: config.proxy.username,
+                bypassList: config.proxy.bypassList,
+            } : undefined,
             startTime: stats.startTime,
             totalRenders: stats.totalRenders,
             failedRenders: stats.failedRenders,
@@ -460,6 +495,11 @@ export async function getBrowserStatus(): Promise<BrowserStatus> {
             connected: false,
             mode: isRemoteMode ? 'remote' : 'local',
             pageCount: 0,
+            proxy: config.proxy?.server ? {
+                server: config.proxy.server,
+                username: config.proxy.username,
+                bypassList: config.proxy.bypassList,
+            } : undefined,
             totalRenders: stats.totalRenders,
             failedRenders: stats.failedRenders,
         };
